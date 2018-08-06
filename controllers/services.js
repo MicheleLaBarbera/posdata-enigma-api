@@ -1,5 +1,7 @@
 const Service = require('../models/service');
 const ServiceLog = require('../models/service_log');
+const ServiceAck = require('../models/service_ack');
+const User = require('../models/user');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 async function asyncForEach(array, callback) {
@@ -41,6 +43,7 @@ module.exports = {
                 var check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
 
                 var serviceObject = {
+                    '_id': element._id,
                     'name': element.name,
                     'status': service_state[0].plugin_output,
                     'age': last_formattedTime,
@@ -54,5 +57,30 @@ module.exports = {
             }
         });
         res.status(200).json(results);
+    },
+    newServiceAck: async (req, res, next) => {
+        const newServiceAck = new ServiceAck(req.value.body);
+        const serviceAck = await newServiceAck.save();
+        res.status(201).json({
+            'status': 201,
+            'body': {
+                'message': 'ACK creato con successo.'
+            }
+        });
+    },
+    getServiceAcks: async (req, res, next) => {
+        const { serviceId } = req.value.params;
+        const service_ack = await ServiceAck.find({ service_id: serviceId }).sort({ created_at: -1 }).limit(1);
+        let serviceAckObject = {};
+        if(service_ack) {
+            const creator = await User.findById(service_ack[0].user_id);
+            serviceAckObject = {
+                'service_id': service_ack[0]._id,
+                'creator_name': creator.username,
+                'message': service_ack[0].message,
+                'created_at': service_ack[0].created_at
+            };
+        }
+        res.status(200).json(serviceAckObject);
     }
 };

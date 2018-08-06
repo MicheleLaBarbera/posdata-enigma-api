@@ -14,4 +14,9 @@ router.route('/:customerId/sites/')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), CustomersController.getCustomerSites)
     .post(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), validateBody(schemas.customerSiteSchema), CustomersController.newCustomerSite);
 */
-module.exports = router;
+
+router.route('/:serviceId/ack')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), ServicesController.getServiceAcks)
+    .post(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), validateBody(schemas.serviceAckSchema), ServicesController.newServiceAck);
+
+    module.exports = router;

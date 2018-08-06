@@ -6,7 +6,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 
 mongoose.Promise = global.Promise;
-mongoose.connect('mongodb://192.168.5.77:27017/scheduler', { useNewUrlParser: true });
+mongoose.connect('mongodb://192.168.5.86:27017/scheduler', { useNewUrlParser: true });
 
 const app = express();
 app.use(cors());

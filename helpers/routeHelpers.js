@@ -63,6 +63,12 @@ module.exports = {
             ip_address: Joi.string().required(),
             port_number: Joi.number().required(),
             description: Joi.string().required()
+        }),
+        serviceAckSchema: Joi.object().keys({
+            service_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            message: Joi.string().required(),
+            created_at: Joi.string().required()
         })        
     }
 }
