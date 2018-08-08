@@ -50,7 +50,8 @@ module.exports = {
                         'service_id': service_ack[0]._id,
                         'creator_name': creator.username,
                         'message': service_ack[0].message,
-                        'created_at': service_ack[0].created_at
+                        'created_at': service_ack[0].created_at,
+                        'expire_at': service_ack[0].expire_at
                     };
                 }
 
@@ -80,7 +81,8 @@ module.exports = {
             'service_id': serviceAck._id,
             'creator_name': creator.username,
             'message': serviceAck.message,
-            'created_at': serviceAck.created_at
+            'created_at': serviceAck.created_at,
+            'expire_at': serviceAck.expire_at
         };
         res.status(201).json({
             'status': 201,

@@ -61,37 +61,42 @@ module.exports = {
     },
     auth: async (req, res, next) => {    
         const user = await User.findOne( { username: req.value.body.username } );
-        const match = await bcrypt.compare(req.value.body.password, user.password);
-   
-        if(match) {
-            const token = CreateJWToken({
-                sessionData: {
-                    'firstname': user.firstname,
-                    'lastname': user.lastname,
-                    'role': user.role,
-                    'id': user._id
-                },
-                maxAge: 360000000
-            });
+        if(user) {
+            const match = await bcrypt.compare(req.value.body.password, user.password);
+    
+            if(match) {
+                const token = CreateJWToken({
+                    sessionData: {
+                        'firstname': user.firstname,
+                        'lastname': user.lastname,
+                        'role': user.role,
+                        'id': user._id
+                    },
+                    maxAge: 360000000
+                });
 
-            const customerUser = await CustomerUser.findOne( { user_id: user._id } );   
-            const customer = await Customer.findById(customerUser.customer_id);   
-      
-            res.status(200).json({
-                'status': 200,
-                'body': {
-                    'token': token,
-                    'logo': customer.logo
+                const customerUser = await CustomerUser.findOne( { user_id: user._id } );   
+                if(customerUser) {
+                    const customer = await Customer.findById(customerUser.customer_id);   
+            
+                    res.status(200).json({
+                        'status': 200,
+                        'body': {
+                            'token': token,
+                            'logo': customer.logo
+                        }
+                    });       
                 }
-            });       
+                else {
+                    res.status(201).json("")
+                }
+            }
+            else {
+                res.status(201).json("")
+            }
         }
         else {
-            res.status(401).json({
-                'status': 401,
-                'body': {
-                    'message': 'Credenziali inserite non valide.'
-                }
-            })
+            res.status(201).json("")
         }
     },
     getUserCustomerSitesHostgroups: async (req, res, next) => {
