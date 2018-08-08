@@ -8,7 +8,11 @@ const { validateParam, validateBody, schemas } = require('../helpers/routeHelper
 
 router.route('/:hostGroupId/')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'hostGroupId'), HostsController.getHostgroupHosts)
+
+router.route('/state/:stateId/')
+    .get(verifyJWT_MW, validateParam(schemas.stateIdSchema, 'stateId'), HostsController.getHostsByState)
     /*.post(verifyJWT_MW, validateBody(schemas.customerSchema), CustomersController.newCustomer);
+
 
 router.route('/:customerId/sites/')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), CustomersController.getCustomerSites)
