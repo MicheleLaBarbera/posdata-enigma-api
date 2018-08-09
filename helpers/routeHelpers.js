@@ -59,6 +59,8 @@ module.exports = {
         }),
         customerSchema: Joi.object().keys({
             name: Joi.string().required(),
+            address: Joi.string().required(),
+            vat_number: Joi.string().regex(/^[0-9]{11}$/).required(),
             logo: Joi.string().required()
         }),
         customerSiteSchema: Joi.object().keys({
@@ -66,6 +68,11 @@ module.exports = {
             ip_address: Joi.string().required(),
             port_number: Joi.number().required(),
             description: Joi.string().required()
+        }),
+        userSiteSchema: Joi.object().keys({
+            user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            customer_site_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            notification: Joi.number().required()
         }),
         serviceAckSchema: Joi.object().keys({
             service_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),

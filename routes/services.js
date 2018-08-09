@@ -19,4 +19,10 @@ router.route('/:serviceId/ack')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), ServicesController.getServiceAcks)
     .post(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), validateBody(schemas.serviceAckSchema), ServicesController.newServiceAck);
 
-    module.exports = router;
+router.route('/:serviceId/ack/:ackId')
+    .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'ackId'), ServicesController.deleteServiceAck);
+
+router.route('/:serviceId/logs')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), ServicesController.getServiceLogs);
+
+module.exports = router;

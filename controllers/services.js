@@ -47,12 +47,13 @@ module.exports = {
                 if(service_ack[0] != null) {                    
                     const creator = await User.findById(service_ack[0].user_id);
                     serviceAckObject = {
-                        'service_id': service_ack[0]._id,
+                        '_id': service_ack[0]._id,
+                        'service_id': service_ack[0].service_id,
                         'creator_name': creator.username,
                         'message': service_ack[0].message,
                         'created_at': service_ack[0].created_at,
                         'expire_at': service_ack[0].expire_at
-                    };
+                    };                
                 }
 
                 var serviceObject = {
@@ -72,13 +73,14 @@ module.exports = {
         });
         res.status(200).json(results);
     },
-    newServiceAck: async (req, res, next) => {
+    newServiceAck: async (req, res, next) => {     
         const newServiceAck = new ServiceAck(req.value.body);
         let serviceAckObject = {};
         const serviceAck = await newServiceAck.save();
         const creator = await User.findById(req.value.body.user_id);
         serviceAckObject = {
-            'service_id': serviceAck._id,
+            '_id': serviceAck._id,
+            'service_id': serviceAck.service_id,
             'creator_name': creator.username,
             'message': serviceAck.message,
             'created_at': serviceAck.created_at,
@@ -98,12 +100,55 @@ module.exports = {
         if(service_ack) {
             const creator = await User.findById(service_ack[0].user_id);
             serviceAckObject = {
-                'service_id': service_ack[0]._id,
+                '_id': service_ack[0]._id,
+                'service_id': service_ack[0].service_id,
                 'creator_name': creator.username,
                 'message': service_ack[0].message,
                 'created_at': service_ack[0].created_at
             };
         }
         res.status(200).json(serviceAckObject);
+    },
+    getServiceLogs: async (req, res, next) => {
+        const { serviceId } = req.value.params;
+        const service_logs = await ServiceLog.find({ service_id: serviceId }).sort({ created_at: -1 });
+        let results = [];
+        let serviceLogObject = {};
+        await asyncForEach(service_logs, async (element) => {
+            let check_change = new Date(element.service_last_check*1000);
+            let check_year = check_change.getFullYear();
+            let check_month = check_change.getMonth() + 1;
+            check_month = (check_month <= 9) ? "0" + check_month : check_month;
+            let check_day = check_change.getDate();
+            check_day = (check_day <= 9) ? "0" + check_day : check_day;
+            let check_hours = "0" + check_change.getHours();
+            let check_minutes = "0" + check_change.getMinutes();
+            let check_seconds = "0" + check_change.getSeconds();
+            let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
+            let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+            let full_date = check_formattedTime + ' ' + check_formattedTime_ex;
+     
+            serviceLogObject = {
+                '_id': element._id,
+                'service_id': element.service_id,
+                'plugin_output': element.plugin_output,
+                'service_state': element.service_state,
+                'service_last_check': full_date,
+                'created_at': element.created_at            
+            };
+            results.push(serviceLogObject);
+        });
+        res.status(200).json(results);
+    },
+    deleteServiceAck: async (req, res, next) => {
+        const { ackId } = req.value.params;
+        const service_ack = await ServiceAck.findById(ackId);
+        await service_ack.remove();
+        res.status(200).json({ 
+            'status': 200,
+            'body': {
+                'success': true
+            } 
+        });
     }
 };

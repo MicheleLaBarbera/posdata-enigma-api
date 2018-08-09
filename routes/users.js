@@ -19,4 +19,10 @@ router.route('/:userId/sites/hostgroups')
 router.route('/:userId/sites/:siteId/hostgroups')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateParam(schemas.idSchema, 'siteId'), UsersController.getUserCustomerSiteHostgroups);
 
+router.route('/:userId/sites/')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), UsersController.getUserSites);
+
+router.route('/sites')
+    .post(verifyJWT_MW, validateBody(schemas.userSiteSchema), UsersController.newUserSite);
+
 module.exports = router;

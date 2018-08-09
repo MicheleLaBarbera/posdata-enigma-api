@@ -3,6 +3,8 @@ const Schema = mongoose.Schema;
 
 const CustomerSchema = new Schema({
     name: String,
+    address: String,
+    vat_number: String,
     logo: String
 });
 
