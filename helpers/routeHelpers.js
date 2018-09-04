@@ -58,10 +58,22 @@ module.exports = {
             password: Joi.string().required()
         }),
         customerSchema: Joi.object().keys({
-            name: Joi.string().required(),
-            address: Joi.string().required(),
-            vat_number: Joi.string().regex(/^[0-9]{11}$/).required(),
+            name: Joi.string().required(),            
+            //address: Joi.string().required(),
+            //vat_number: Joi.string().regex(/^[0-9]{11}$/).required(),
+            customer_code: Joi.string().required(),
+            referent_name: Joi.string().required(),
+            phone_number: Joi.string().regex(/^[0-9]/).required(),
+            email: Joi.string().email().required(),
             logo: Joi.string().required()
+        }),
+        patchCustomerSchema: Joi.object().keys({
+            name: Joi.string(),            
+            customer_code: Joi.string(),
+            referent_name: Joi.string(),
+            phone_number: Joi.string().regex(/^[0-9]/),
+            email: Joi.string().email(),
+            logo: Joi.string()
         }),
         customerSiteSchema: Joi.object().keys({
             customer_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),

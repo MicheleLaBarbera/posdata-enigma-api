@@ -44,7 +44,7 @@ module.exports = {
             let newUserLog = new UserLog({
                 'user_id': req.user.id,
                 'action_type': 0,
-                'message': 'Creazione cliente | Nome: ' + customer.name + ' - Indirizzo: ' + customer.address + ' - Partita IVA: ' + customer.vat_number,
+                'message': 'Creazione cliente | Nome: ' + customer.name + ' - Codice Cliente: ' + customer.customer_code,
                 'created_at': final
             });
             
@@ -230,5 +230,18 @@ module.exports = {
             }            
         });
         res.status(200).json(sites);
+    },
+    replaceCustomer: async (req, res, next) => {
+        const { customerId } = req.value.params;
+        const newCustomer = req.value.body;
+
+        const result = await Customer.findByIdAndUpdate(customerId, newCustomer);
+    
+        res.status(200).json({ 
+            'status': 200,
+            'body': {
+                'success': true
+            } 
+        });
     }
 };

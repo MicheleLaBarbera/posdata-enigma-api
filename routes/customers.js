@@ -18,6 +18,7 @@ router.route('/:customerId/sites/:siteId')
     .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), CustomersController.deleteCustomerSite);
 
 router.route('/:customerId')
+    .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), validateBody(schemas.patchCustomerSchema), CustomersController.replaceCustomer)
     .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), CustomersController.deleteCustomer);
 
 router.route('/sites')
