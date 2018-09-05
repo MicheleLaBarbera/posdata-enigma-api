@@ -1,3 +1,4 @@
+const Host = require('../models/host');
 const Service = require('../models/service');
 const ServiceLog = require('../models/service_log');
 const ServiceAck = require('../models/service_ack');
@@ -42,7 +43,7 @@ module.exports = {
                 let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
                 let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
 
-                let service_ack = await ServiceAck.find({ service_id: element._id }).sort({ created_at: -1 }).limit(1);
+                let service_ack = await ServiceAck.find({ service_id: element._id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                 let serviceAckObject = {};
                 if(service_ack[0] != null) {                    
                     const creator = await User.findById(service_ack[0].user_id);
@@ -51,13 +52,13 @@ module.exports = {
                         'service_id': service_ack[0].service_id,
                         'creator_name': creator.username,
                         'message': service_ack[0].message,
-                        'created_at': service_ack[0].created_at,
-                        'expire_at': service_ack[0].expire_at
+                        'created_at': service_ack[0].created_at
                     };                
                 }
 
                 var serviceObject = {
                     '_id': element._id,
+                    'host_id': element.host_id,
                     'name': element.name,
                     'status': service_state[0].plugin_output,
                     'age': last_formattedTime,
@@ -80,12 +81,17 @@ module.exports = {
         const creator = await User.findById(req.value.body.user_id);
         serviceAckObject = {
             '_id': serviceAck._id,
+            'host_id': serviceAck.host_id,
             'service_id': serviceAck.service_id,
             'creator_name': creator.username,
             'message': serviceAck.message,
             'created_at': serviceAck.created_at,
-            'expire_at': serviceAck.expire_at
+            'expired': serviceAck.expired
         };
+        const host = await Host.findById(req.value.body.host_id);
+        host.acks++;
+        await host.save();
+
         res.status(201).json({
             'status': 201,
             'body': {
@@ -143,7 +149,13 @@ module.exports = {
     deleteServiceAck: async (req, res, next) => {
         const { ackId } = req.value.params;
         const service_ack = await ServiceAck.findById(ackId);
-        await service_ack.remove();
+        service_ack.expired = 1;
+        await service_ack.save();
+        
+        const host = await Host.findById(service_ack.host_id);
+        host.acks--;
+        await host.save();
+
         res.status(200).json({ 
             'status': 200,
             'body': {

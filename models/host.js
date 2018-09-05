@@ -7,7 +7,8 @@ const HostSchema = new Schema({
     host_group_id: Schema.Types.ObjectId,
     name: String,
     host_address: String,
-    host_alias: String
+    host_alias: String,
+    acks: Number
 });
 
 const Host = mongoose.model('hosts', HostSchema);
