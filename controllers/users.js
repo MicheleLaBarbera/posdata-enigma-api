@@ -52,6 +52,27 @@ module.exports = {
             user_id: user._id
         });
         const customerUser = await newCustomerUser.save();
+        if(req.value.body.role != 0) {
+            let sites = [];
+            const customerSites = await CustomerSite.find({});
+            await asyncForEach(customerSites, async (element) => {
+                let customerSiteObject = {
+                    'user_id': user._id,
+                    'customer_site_id': element._id,
+                    'notification': 0,
+                    'telegram': 0,
+                    'email': 0,
+                    'sms': 0
+                }
+                sites.push(customerSiteObject);
+            });
+            if(sites) {
+                //console.log(sites);                 
+                const user_site = await UserCustomerSite.insertMany(sites);
+                //console.log(user_site);  
+            }
+        }
+
         res.status(201).json({
             'status': 201,
             'body': {

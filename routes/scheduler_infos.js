@@ -5,6 +5,6 @@ const verifyJWT_MW = require('../helpers/verifyJWT');
 const SchedulerInfosController = require('../controllers/scheduler_infos');
 
 router.route('/lastcheck')
-    .get(verifyJWT_MW, SchedulerInfosController.getLastCheck);
+    .get(SchedulerInfosController.getLastCheck);
 
 module.exports = router;

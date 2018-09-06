@@ -84,7 +84,10 @@ module.exports = {
         userSiteSchema: Joi.object().keys({
             user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             customer_site_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
-            notification: Joi.number().required()
+            notification: Joi.number().required(),
+            telegram: Joi.number().required(),
+            email: Joi.number().required(),
+            sms: Joi.number().required()
         }),
         serviceAckSchema: Joi.object().keys({
             host_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
