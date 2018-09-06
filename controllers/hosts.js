@@ -78,7 +78,36 @@ module.exports = {
         let results = [];
         await asyncForEach(hosts, async (element) => {
             const host_state = await HostLog.find({host_id: element._id, hard_state: stateId }).sort({ created_at: -1 }).limit(1);
-            if(host_state[0] != null) {              
+            if(host_state[0] != null) {     
+                let crit = host_state[0].host_num_services_crit;
+                let ok = host_state[0].host_num_services_ok;
+                let unknown = host_state[0].host_num_services_unknown;
+                let warn = host_state[0].host_num_services_warn;
+
+                const service_acks = await ServiceAck.find({ host_id: element._id, expired: 0 });
+                await asyncForEach(service_acks, async (service_ack) => {        
+                    const service_log = await ServiceLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
+
+                    if(service_log) {    
+                        switch(service_log[0].service_state) {
+                            case 1: {
+                                warn--;
+                                ok++;
+                                break;
+                            }
+                            case 2: {
+                                crit--;
+                                ok++;       
+                                break;
+                            }
+                            case 3: {
+                                unknown--;
+                                ok++;
+                                break;
+                            }
+                        }
+                    }
+                });         
                 const customer_site = await CustomerSite.findById(element.customer_site_id);
                 if(customer_site) {
                     const customer = await Customer.findById(customer_site.customer_id);
@@ -87,10 +116,10 @@ module.exports = {
                             '_id': element._id,
                             'address': element.host_address,
                             'alias': element.host_alias,
-                            'crit': host_state[0].host_num_services_crit,
-                            'ok': host_state[0].host_num_services_ok,
-                            'unknown': host_state[0].host_num_services_unknown,
-                            'warn': host_state[0].host_num_services_warn,
+                            'crit': crit,
+                            'ok': ok,
+                            'unknown': unknown,
+                            'warn': warn,
                             'name': customer.name,
                             'site': customer_site.description,
                             'acks': element.acks
