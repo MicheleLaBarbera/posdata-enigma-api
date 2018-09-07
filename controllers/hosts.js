@@ -134,6 +134,26 @@ module.exports = {
     getHostLogs: async (req, res, next) => {
         const { hostId } = req.value.params;
         const host_logs = await HostLog.find({host_id: hostId}).sort({ created_at: -1 });
-        res.status(200).json(host_logs);
+
+        let results = [];
+        let oldState = -1;
+        await asyncForEach(host_logs, async (element) => {
+            console.log("Hard State: " + element.hard_state + " - Old State: " + oldState);
+            if(element.hard_state != oldState) {
+                let hostObject = {
+                    "_id": element._id,              
+                    "host_id": element.host_id,                 
+                    "created_at": element.created_at,                   
+                    "host_num_services_crit": element.host_num_services_crit,                    
+                    "host_num_services_ok": element.host_num_services_ok,                   
+                    "host_num_services_unknown": element.host_num_services_unknown,                    
+                    "host_num_services_warn": element.host_num_services_warn,                    
+                    "hard_state": element.hard_state                   
+                };
+                oldState = element.hard_state;
+                results.push(hostObject);
+            }            
+        });
+        res.status(200).json(results);
     }
 };

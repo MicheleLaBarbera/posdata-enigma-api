@@ -1,9 +1,11 @@
 const Customer = require('../models/customer');
 const CustomerSite = require('../models/customer_site');
 const UserLog = require('../models/user_log');
+const User = require('../models/user');
+const UserCustomerSite = require('../models/user_customer_site');
 const CustomerSiteLog = require('../models/customer_site_log');
 const ObjectId = require('mongoose').Types.ObjectId;
-var { verifyJWT } = require('../helpers/auth');
+let { verifyJWT } = require('../helpers/auth');
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -97,16 +99,30 @@ module.exports = {
             });
             const userLog = newUserLog.save();
 
-        });
-        //console.log(customerSite);
+        });       
         let newCustomerSiteLog = new CustomerSiteLog({
             'customer_site_id': customerSite._id,                
             'created_at': final,
             'state': 0
         });
-        //console.log(newCustomerSiteLog);
-        const customerSiteLog = await newCustomerSiteLog.save();                        
-        //console.log(customerSiteLog);
+      
+        const customerSiteLog = await newCustomerSiteLog.save();    
+       
+        const users = await User.find({ role: { $gt: 0 }});
+        let sites = [];
+        await asyncForEach(users, async (element) => {
+            let myObject = {
+                user_id: element._id,
+                customer_site_id: customerSite._id,
+                notification: 0,
+                telegram: 0,
+                email: 0,
+                sms: 0
+            };
+            sites.push(myObject);
+        });        
+        let newUserCustomerSites = await UserCustomerSite.insertMany(sites);
+  
         res.status(201).json({
             'status': 201,
             'body': {
@@ -175,6 +191,14 @@ module.exports = {
         const customerSite = await CustomerSite.findById(siteId);    
         const customer_site_ex = customerSite;        
         await customerSite.remove();
+   
+        const userCustomerSites = await UserCustomerSite.find({customer_site_id: siteId}); 
+      
+        if(userCustomerSites[0] != null) {
+            await asyncForEach(userCustomerSites, async (element) => {              
+                await element.remove();
+            });
+        }
 
         let token = req.get('Authorization');
         
@@ -215,7 +239,7 @@ module.exports = {
     },
     getAllSites: async (req, res, next) => {                  
         const customerSites = await CustomerSite.find({});
-        var sites = [];
+        let sites = [];
         await asyncForEach(customerSites, async (element) => {  
             const customer = await Customer.findById(element.customer_id);
             if(customer) {
