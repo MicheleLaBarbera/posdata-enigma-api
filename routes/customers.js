@@ -14,6 +14,9 @@ router.route('/:customerId/sites/')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), CustomersController.getCustomerSites)
     .post(verifyJWT_MW, validateParam(schemas.idSchema, 'customerId'), validateBody(schemas.customerSiteSchema), CustomersController.newCustomerSite);
 
+router.route('/:customerSiteId/hosts/')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'customerSiteId'), CustomersController.getCustomerSiteHosts)
+
 router.route('/:customerId/sites/:siteId')
     .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), CustomersController.deleteCustomerSite);
 

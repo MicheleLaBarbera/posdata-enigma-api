@@ -43,6 +43,9 @@ module.exports = {
         stateIdSchema: Joi.object().keys({
             param: Joi.number().required()
         }),
+        nrSchema: Joi.object().keys({
+            param: Joi.number().required()
+        }),
         userSchema: Joi.object().keys({
             customer_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             username: Joi.string().required(),

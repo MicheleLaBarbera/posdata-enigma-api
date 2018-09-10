@@ -4,6 +4,11 @@ const UserLog = require('../models/user_log');
 const User = require('../models/user');
 const UserCustomerSite = require('../models/user_customer_site');
 const CustomerSiteLog = require('../models/customer_site_log');
+const Host = require('../models/host');
+const HostLog = require('../models/host_log');
+const HostGroup = require('../models/host_group');
+const ServiceLog = require('../models/service_log');
+const ServiceAck = require('../models/service_ack');
 const ObjectId = require('mongoose').Types.ObjectId;
 let { verifyJWT } = require('../helpers/auth');
 
@@ -267,5 +272,64 @@ module.exports = {
                 'success': true
             } 
         });
+    },
+    getCustomerSiteHosts: async (req, res, next) => {
+        const { customerSiteId } = req.value.params;
+        const host_groups = await HostGroup.find({ customer_site_id: customerSiteId });
+        let results = [];
+        const service_acks = await ServiceAck.find({ expired: 0 });
+        await asyncForEach(host_groups, async (host_group) => {
+            const hosts = await Host.find({ host_group_id: host_group._id });             
+            await asyncForEach(hosts, async (element) => {
+                const host_state = await HostLog.find({ host_id: element._id }).sort({ created_at: -1 }).limit(1);
+                if(host_state) {      
+                    let crit = host_state[0].host_num_services_crit;
+                    let ok = host_state[0].host_num_services_ok;
+                    let unknown = host_state[0].host_num_services_unknown;
+                    let warn = host_state[0].host_num_services_warn;
+
+                    //const service_acks = await ServiceAck.find({ host_id: element._id, expired: 0 });
+                    await asyncForEach(service_acks, async (service_ack) => {        
+                        if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state.host_id)) {
+                            const service_log = await ServiceLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
+
+                            if(service_log) {    
+                                switch(service_log[0].service_state) {
+                                    case 1: {
+                                        warn--;
+                                        ok++;
+                                        break;
+                                    }
+                                    case 2: {
+                                        crit--;
+                                        ok++;       
+                                        break;
+                                    }
+                                    case 3: {
+                                        unknown--;
+                                        ok++;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    });
+                    let hostObject = {
+                        '_id': element._id,
+                        'address': element.host_address,
+                        'alias': element.host_alias,
+                        'crit': crit,
+                        'ok': ok,
+                        'unknown': unknown,
+                        'warn': warn,
+                        'hard_state': host_state[0].hard_state,
+                        'acks': element.acks,
+                        'groups': host_group.name
+                    };    
+                    results.push(hostObject);
+                }
+            });            
+        });
+        res.status(200).json(results);
     }
 };
