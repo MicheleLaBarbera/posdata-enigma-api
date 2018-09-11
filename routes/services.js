@@ -25,4 +25,7 @@ router.route('/:serviceId/ack/:ackId')
 router.route('/:serviceId/logs')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), ServicesController.getServiceLogs);
 
+router.route('/state/:stateId')
+    .get(verifyJWT_MW, validateParam(schemas.stateIdSchema, 'stateId'), ServicesController.getServicesByState);
+
 module.exports = router;

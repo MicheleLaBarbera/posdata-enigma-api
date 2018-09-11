@@ -74,7 +74,7 @@ function predicate() {
     };
 }
 
-module.exports = {
+module.exports = {    
     getHostgroupHosts: async (req, res, next) => {
         const { hostGroupId } = req.value.params;
         const hosts = await Host.find({ host_group_id: hostGroupId});

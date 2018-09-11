@@ -3,12 +3,68 @@ const Service = require('../models/service');
 const ServiceLog = require('../models/service_log');
 const ServiceAck = require('../models/service_ack');
 const User = require('../models/user');
+const ServiceLastLog = require('../models/service_last_log');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array)
     }
+}
+
+function predicate() {
+    var fields = [], n_fields = arguments.length, field, name, reverse, cmp;
+
+    var default_cmp = function (a, b) {
+        if (a === b) return 0;
+        return a < b ? -1 : 1;
+        },
+        getCmpFunc = function (primer, reverse) {
+        var dfc = default_cmp,
+            // closer in scope
+            cmp = default_cmp;
+        if (primer) {
+            cmp = function (a, b) {
+            return dfc(primer(a), primer(b));
+            };
+        }
+        if (reverse) {
+            return function (a, b) {
+            return -1 * cmp(a, b);
+            };
+        }
+        return cmp;
+        };
+
+    // preprocess sorting options
+    for (var i = 0; i < n_fields; i++) {
+        field = arguments[i];
+        if (typeof field === 'string') {
+        name = field;
+        cmp = default_cmp;
+        } else {
+        name = field.name;
+        cmp = getCmpFunc(field.primer, field.reverse);
+        }
+        fields.push({
+        name: name,
+        cmp: cmp
+        });
+    }
+
+    // final comparison function
+    return function (A, B) {
+        var a, b, name, result;
+        for (var i = 0; i < n_fields; i++) {
+        result = 0;
+        field = fields[i];
+        name = field.name;
+
+        result = field.cmp(A[name], B[name]);
+        if (result !== 0) break;
+        }
+        return result;
+    };
 }
 
 module.exports = {
@@ -162,5 +218,63 @@ module.exports = {
                 'success': true
             } 
         });
-    }
+    },
+    getServicesByState: async (req, res, next) => {
+        const { stateId } = req.value.params;
+        let results = [];
+        const services_last_log = await ServiceLastLog.aggregate([
+            //{ $match: { service_state: stateId } },
+            { $sort: { created_at: 1 } },
+            {
+                $group:
+                {
+                    _id: "$service_id",	                      
+                    plugin_output: { $last: "$plugin_output" },
+                    service_state: { $last: "$service_state" },
+                    service_last_state_change: { $last: "$service_last_state_change" },
+                    host_name: { $last: "$host_name" },
+                    service_last_check: { $last: "$service_last_check" },
+                    created_at: { $last: "$created_at" },
+                    service_logs_docs: { $last: "$service_logs_docs" },
+                    host_logs_docs: { $last: "$host_logs_docs" },
+                    customer_site_logs_docs: { $last: "$customer_site_logs_docs" },
+                    customer_logs_docs: { $last: "$customer_logs_docs" }
+                }
+            }
+        ]); 
+
+        await asyncForEach(services_last_log, async (element) => {
+            if(element.service_state == stateId) {
+                if(stateId != 0) {
+                    const service_ack = await ServiceAck.findOne({ service_id: element._id, expired: 0 });
+                    console.log(service_ack);
+                    if(!service_ack) {
+                        console.log("we");
+                        let myObject = {
+                            customer_name: element.customer_logs_docs.name,
+                            customer_site_description: element.customer_site_logs_docs.description,
+                            host_alias: element.host_logs_docs.host_alias,
+                            service_name: element.service_logs_docs.name,
+                            plugin_output: element.plugin_output,
+                            created_at: element.created_at
+                        };
+                        results.push(myObject);
+                    }
+                }
+                else {
+                    let myObject = {
+                        customer_name: element.customer_logs_docs.name,
+                        customer_site_description: element.customer_site_logs_docs.description,
+                        host_alias: element.host_logs_docs.host_alias,
+                        service_name: element.service_logs_docs.name,
+                        plugin_output: element.plugin_output,
+                        created_at: element.created_at
+                    };
+                    results.push(myObject);
+                }
+            }
+        });
+        res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
+
+    },
 };

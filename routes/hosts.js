@@ -18,4 +18,5 @@ router.route('/:hostId/logs')
    
 router.route('/state/:stateId')
     .get(verifyJWT_MW, validateParam(schemas.stateIdSchema, 'stateId'), HostsController.getHostsByState)
+
 module.exports = router;
