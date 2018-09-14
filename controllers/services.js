@@ -3,7 +3,7 @@ const Service = require('../models/service');
 const ServiceLog = require('../models/service_log');
 const ServiceAck = require('../models/service_ack');
 const User = require('../models/user');
-const ServiceLastLog = require('../models/service_last_log');
+const ServiceCompleteInfo = require('../models/service_complete_info');
 const ObjectId = require('mongoose').Types.ObjectId;
 
 async function asyncForEach(array, callback) {
@@ -222,7 +222,9 @@ module.exports = {
     getServicesByState: async (req, res, next) => {
         const { stateId } = req.value.params;
         let results = [];
-        const services_last_log = await ServiceLastLog.aggregate([
+        const services_last_log = await ServiceCompleteInfo.find({ service_state: stateId });
+        //console.log(services_last_log);
+        /*const services_last_log = await ServiceLastLog.aggregate([
             //{ $match: { service_state: stateId } },
             { $sort: { created_at: 1 } },
             {
@@ -241,15 +243,17 @@ module.exports = {
                     customer_logs_docs: { $last: "$customer_logs_docs" }
                 }
             }
-        ]); 
+        ]); */
 
-        await asyncForEach(services_last_log, async (element) => {
+        await asyncForEach(services_last_log, async (element) => {     
+            //console.log(element); 
+            //console.log("Element State: " + element.service_state + " - StateID: " + stateId);      
             if(element.service_state == stateId) {
+                
                 if(stateId != 0) {
                     const service_ack = await ServiceAck.findOne({ service_id: element._id, expired: 0 });
-                    console.log(service_ack);
-                    if(!service_ack) {
-                        console.log("we");
+                    //console.log(service_ack);
+                    if(!service_ack) {                     
                         let myObject = {
                             customer_name: element.customer_logs_docs.name,
                             customer_site_description: element.customer_site_logs_docs.description,
@@ -274,6 +278,7 @@ module.exports = {
                 }
             }
         });
+        //console.log(results);
         res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
 
     },
