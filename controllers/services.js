@@ -251,7 +251,7 @@ module.exports = {
             if(element.service_state == stateId) {
                 
                 if(stateId != 0) {
-                    const service_ack = await ServiceAck.findOne({ service_id: element._id, expired: 0 });
+                    const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });
                     //console.log(service_ack);
                     if(!service_ack) {                     
                         let myObject = {
@@ -281,5 +281,25 @@ module.exports = {
         //console.log(results);
         res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
 
+    },
+    getServicesChange: async (req, res, next) => {
+        let results = [];
+        const services_last_log = await ServiceCompleteInfo.find({ service_state: { $gt: 0 } }).sort({ created_at: -1 });
+        
+        await asyncForEach(services_last_log, async (element) => {        
+            const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });            
+            if(!service_ack) {                     
+                let myObject = {
+                    customer_name: element.customer_logs_docs.name,
+                    customer_site_description: element.customer_site_logs_docs.description,
+                    host_alias: element.host_logs_docs.host_alias,
+                    service_name: element.service_logs_docs.name,
+                    plugin_output: element.service_state,
+                    created_at: element.created_at
+                };
+                results.push(myObject);
+            }        
+        });   
+        res.status(200).json(results);
     },
 };

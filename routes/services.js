@@ -28,4 +28,7 @@ router.route('/:serviceId/logs')
 router.route('/state/:stateId')
     .get(verifyJWT_MW, validateParam(schemas.stateIdSchema, 'stateId'), ServicesController.getServicesByState);
 
+router.route('/change/:ok')
+    .get(verifyJWT_MW, ServicesController.getServicesChange);
+
 module.exports = router;
