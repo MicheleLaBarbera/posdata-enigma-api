@@ -4,6 +4,8 @@ const Customer = require('../models/customer');
 const UserCustomerSite = require('../models/user_customer_site');
 const CustomerSite = require('../models/customer_site');
 const HostGroup = require('../models/host_group');
+const ServiceLastLog = require('../models/service_last_log');
+const ServiceAck = require('../models/service_ack');
 
 const { CreateJWToken } = require('../helpers/auth');
 
@@ -150,17 +152,61 @@ module.exports = {
                     customerSiteObject.hosts_down += element.num_hosts_down;
                     customerSiteObject.hosts_pending += element.num_hosts_pending;
                     customerSiteObject.hosts_unreachable += element.num_hosts_unreach;
-                    customerSiteObject.hosts_up += element.num_hosts_up;
-                    customerSiteObject.services_crit += element.num_services_crit;
-                    customerSiteObject.services_ok += element.num_services_ok;
-                    customerSiteObject.services_pending += element.num_services_pending;
-                    customerSiteObject.services_unknown += element.num_services_unknown;
-                    customerSiteObject.services_warn += element.num_services_warn;
+                    customerSiteObject.hosts_up += element.num_hosts_up;                   
                     
                     var toArray =  element.alias.split("-");
                     element.alias = toArray[1];
                     
-                });        
+                });
+
+
+                const services = await ServiceLastLog.find({ customer_site_id: element.customer_site_id });                
+                
+                await asyncForEach(services, async (element) => {
+                    switch(element.service_state) {
+                        case 0: {
+                            customerSiteObject.services_ok++;
+                            //results.services_total++;
+                            break;
+                        }
+                        case 1: {
+                            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                            if(service_ack[0] != null) {
+                                customerSiteObject.services_pending++;
+                                customerSiteObject.services_ok++;
+                            }
+                            else {
+                                customerSiteObject.services_warn++;
+                            }
+                            //results.services_total++;
+                            break;
+                        }
+                        case 2: {
+                            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                            if(service_ack[0] != null) {
+                                customerSiteObject.services_pending++;
+                                customerSiteObject.services_ok++;
+                            }
+                            else {
+                                customerSiteObject.services_crit++;
+                            }
+                            //results.services_total++;
+                            break;
+                        }
+                        case 3: {
+                            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                            if(service_ack[0] != null) {
+                                customerSiteObject.services_pending++;
+                                customerSiteObject.services_ok++;
+                            }
+                            else {
+                                customerSiteObject.services_unknown++;
+                            }
+                            //results.services_total++;
+                            break;
+                        }
+                    }
+                });
                 sites.push(customerSiteObject);    
             }       
         });

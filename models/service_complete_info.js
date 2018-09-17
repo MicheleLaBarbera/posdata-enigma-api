@@ -7,7 +7,7 @@ const ServiceCompleteInfoSchema = new Schema({
     plugin_output: String,
     service_state: Number,
     service_last_state_change: Number,
-    host_name: String,
+    host_id: Schema.Types.ObjectId,
     service_last_check: Number,
     created_at: String,
     service_logs_docs: {

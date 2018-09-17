@@ -1,6 +1,7 @@
 const Host = require('../models/host');
 const Service = require('../models/service');
 const ServiceLog = require('../models/service_log');
+const ServiceLastLog = require('../models/service_last_log');
 const ServiceAck = require('../models/service_ack');
 const User = require('../models/user');
 const ServiceCompleteInfo = require('../models/service_complete_info');
@@ -70,7 +71,36 @@ function predicate() {
 module.exports = {
     getHostServices: async (req, res, next) => {
         const { hostId } = req.value.params;
-        const services = await Service.find({ host_id: hostId});
+        let results = [];
+
+        const services_last_log = await ServiceLastLog.find({ host_id: hostId });
+        await asyncForEach(services_last_log, async (element) => {
+            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+            let serviceAckObject = {};
+            if(service_ack[0] != null) {                    
+                const creator = await User.findById(service_ack[0].user_id);
+                serviceAckObject = {
+                    '_id': service_ack[0]._id,
+                    'service_id': service_ack[0].service_id,
+                    'creator_name': creator.username,
+                    'message': service_ack[0].message,
+                    'created_at': service_ack[0].created_at
+                };                
+            }
+            let service = await Service.findById(element.service_id);
+
+            let serviceObject = {
+                '_id': element.service_id,
+                'host_id': element.host_id,
+                'name': service.name,
+                'status': element.plugin_output,               
+                'state': element.service_state,             
+                'ack': serviceAckObject
+            }          
+            results.push(serviceObject);
+        });
+
+        /*const services = await Service.find({ host_id: hostId});
         let results = [];
         await asyncForEach(services, async (element) => {
             const service_state = await ServiceLog.find({ service_id: element._id }).sort({ created_at: -1 }).limit(1);
@@ -127,7 +157,8 @@ module.exports = {
                 }          
                 results.push(serviceObject);
             }
-        });
+        });*/
+        //console.log(results);
         res.status(200).json(results);
     },
     newServiceAck: async (req, res, next) => {     
@@ -222,37 +253,13 @@ module.exports = {
     getServicesByState: async (req, res, next) => {
         const { stateId } = req.value.params;
         let results = [];
-        const services_last_log = await ServiceCompleteInfo.find({ service_state: stateId });
-        //console.log(services_last_log);
-        /*const services_last_log = await ServiceLastLog.aggregate([
-            //{ $match: { service_state: stateId } },
-            { $sort: { created_at: 1 } },
-            {
-                $group:
-                {
-                    _id: "$service_id",	                      
-                    plugin_output: { $last: "$plugin_output" },
-                    service_state: { $last: "$service_state" },
-                    service_last_state_change: { $last: "$service_last_state_change" },
-                    host_name: { $last: "$host_name" },
-                    service_last_check: { $last: "$service_last_check" },
-                    created_at: { $last: "$created_at" },
-                    service_logs_docs: { $last: "$service_logs_docs" },
-                    host_logs_docs: { $last: "$host_logs_docs" },
-                    customer_site_logs_docs: { $last: "$customer_site_logs_docs" },
-                    customer_logs_docs: { $last: "$customer_logs_docs" }
-                }
-            }
-        ]); */
+        const services_last_log = await ServiceCompleteInfo.find({ service_state: stateId });      
 
-        await asyncForEach(services_last_log, async (element) => {     
-            //console.log(element); 
-            //console.log("Element State: " + element.service_state + " - StateID: " + stateId);      
-            if(element.service_state == stateId) {
-                
+        await asyncForEach(services_last_log, async (element) => {        
+            if(element.service_state == stateId) {              
                 if(stateId != 0) {
                     const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });
-                    //console.log(service_ack);
+              
                     if(!service_ack) {                     
                         let myObject = {
                             customer_name: element.customer_logs_docs.name,
@@ -277,8 +284,7 @@ module.exports = {
                     results.push(myObject);
                 }
             }
-        });
-        //console.log(results);
+        });     
         res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
 
     },

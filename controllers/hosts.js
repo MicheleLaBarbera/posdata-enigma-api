@@ -3,6 +3,7 @@ const HostLog = require('../models/host_log');
 const CustomerSite = require('../models/customer_site');
 const Customer = require('../models/customer');
 const ServiceLog = require('../models/service_log');
+const ServiceLastLog = require('../models/service_last_log');
 const ServiceAck = require('../models/service_ack');
 const ObjectId = require('mongoose').Types.ObjectId;
 
@@ -90,9 +91,9 @@ module.exports = {
 
                 await asyncForEach(service_acks, async (service_ack) => {      
                     if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state[0].host_id)) {        
-                        const service_log = await ServiceLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
+                        const service_log = await ServiceLastLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
 
-                        if(service_log) {    
+                        if(service_log[0] != null) {    
                             switch(service_log[0].service_state) {
                                 case 1: {
                                     warn--;
@@ -150,9 +151,9 @@ module.exports = {
 
                         await asyncForEach(service_acks, async (service_ack) => {  
                             if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state[0].host_id)) {                              
-                                const service_log = await ServiceLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
+                                const service_log = await ServiceLastLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
                 
-                                if(service_log) {    
+                                if(service_log[0] != null) {    
                                     switch(service_log[0].service_state) {
                                         case 1: {
                                             warn--;
