@@ -1,5 +1,6 @@
 const Host = require('../models/host');
 const HostLog = require('../models/host_log');
+const HostLastLog = require('../models/host_last_log');
 const CustomerSite = require('../models/customer_site');
 const Customer = require('../models/customer');
 const ServiceLog = require('../models/service_log');
@@ -82,15 +83,16 @@ module.exports = {
         let results = [];
         const service_acks = await ServiceAck.find({ expired: 0 });
         await asyncForEach(hosts, async (element) => {
-            const host_state = await HostLog.find({ host_id: element._id }).sort({ created_at: -1 }).limit(1);
+            const host_state = await HostLastLog.findOne({ host_id: element._id });
+            console.log(host_state);
             if(host_state) {      
-                let crit = host_state[0].host_num_services_crit;
-                let ok = host_state[0].host_num_services_ok;
-                let unknown = host_state[0].host_num_services_unknown;
-                let warn = host_state[0].host_num_services_warn;
+                let crit = host_state.host_num_services_crit;
+                let ok = host_state.host_num_services_ok;
+                let unknown = host_state.host_num_services_unknown;
+                let warn = host_state.host_num_services_warn;
 
                 await asyncForEach(service_acks, async (service_ack) => {      
-                    if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state[0].host_id)) {        
+                    if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state.host_id)) {        
                         const service_log = await ServiceLastLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
 
                         if(service_log[0] != null) {    
@@ -122,7 +124,7 @@ module.exports = {
                     'ok': ok,
                     'unknown': unknown,
                     'warn': warn,
-                    'hard_state': host_state[0].hard_state,
+                    'hard_state': host_state.hard_state,
                     'acks': element.acks
                 };    
                 results.push(hostObject);
@@ -141,16 +143,16 @@ module.exports = {
 
         if(hosts) {
             await asyncForEach(hosts, async (element) => {
-                const host_state = await HostLog.find({host_id: element._id }).sort({ created_at: -1 }).limit(1);                                    
-                if(host_state[0] != null) {    
-                    if(host_state[0].hard_state == stateId) { 
-                        let crit = host_state[0].host_num_services_crit;
-                        let ok = host_state[0].host_num_services_ok;
-                        let unknown = host_state[0].host_num_services_unknown;
-                        let warn = host_state[0].host_num_services_warn;
+                const host_state = await HostLastLog.findOne({host_id: element._id });                                    
+                if(host_state != null) {    
+                    if(host_state.hard_state == stateId) { 
+                        let crit = host_state.host_num_services_crit;
+                        let ok = host_state.host_num_services_ok;
+                        let unknown = host_state.host_num_services_unknown;
+                        let warn = host_state.host_num_services_warn;
 
                         await asyncForEach(service_acks, async (service_ack) => {  
-                            if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state[0].host_id)) {                              
+                            if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state.host_id)) {                              
                                 const service_log = await ServiceLastLog.find({ service_id: service_ack.service_id }).sort({ created_at: -1 }).limit(1);
                 
                                 if(service_log[0] != null) {    

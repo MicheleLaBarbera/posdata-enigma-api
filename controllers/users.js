@@ -152,11 +152,11 @@ module.exports = {
                     customerSiteObject.hosts_down += element.num_hosts_down;
                     customerSiteObject.hosts_pending += element.num_hosts_pending;
                     customerSiteObject.hosts_unreachable += element.num_hosts_unreach;
-                    customerSiteObject.hosts_up += element.num_hosts_up;                   
+                    customerSiteObject.hosts_up += element.num_hosts_up;    
+                    element.worst_service_state = 0;             
                     
                     var toArray =  element.alias.split("-");
-                    element.alias = toArray[1];
-                    
+                    element.alias = toArray[1];                    
                 });
 
 
@@ -165,8 +165,7 @@ module.exports = {
                 await asyncForEach(services, async (element) => {
                     switch(element.service_state) {
                         case 0: {
-                            customerSiteObject.services_ok++;
-                            //results.services_total++;
+                            customerSiteObject.services_ok++;                       
                             break;
                         }
                         case 1: {
@@ -177,8 +176,14 @@ module.exports = {
                             }
                             else {
                                 customerSiteObject.services_warn++;
-                            }
-                            //results.services_total++;
+
+                                hostGroups.forEach(group => {                            
+                                    if(group._id.toString() == element.host_group_id.toString()) {     
+                                        if(group.worst_service_state == 0)                           
+                                            group.worst_service_state = 1;                                        
+                                    }
+                                });
+                            }                   
                             break;
                         }
                         case 2: {
@@ -189,8 +194,15 @@ module.exports = {
                             }
                             else {
                                 customerSiteObject.services_crit++;
-                            }
-                            //results.services_total++;
+
+                                hostGroups.forEach(group => {                             
+                                    if(group._id.toString() == element.host_group_id.toString()) {     
+                                        if(group.worst_service_state == 0 || group.worst_service_state == 1) {                          
+                                            group.worst_service_state = 2;        
+                                        }                                
+                                    }
+                                });
+                            }                     
                             break;
                         }
                         case 3: {
@@ -201,8 +213,13 @@ module.exports = {
                             }
                             else {
                                 customerSiteObject.services_unknown++;
-                            }
-                            //results.services_total++;
+
+                                hostGroups.forEach(group => {                   
+                                    if(group._id.toString() == element.host_group_id.toString()) {                             
+                                        group.worst_service_state = 3;                                        
+                                    }
+                                });
+                            }                 
                             break;
                         }
                     }

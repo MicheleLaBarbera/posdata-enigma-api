@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const HostGroupSchema = new Schema({
+    _id: Schema.Types.ObjectId,
     customer_site_id: Schema.Types.ObjectId,
     name: String,
     alias: String,
