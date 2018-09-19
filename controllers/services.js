@@ -300,11 +300,31 @@ module.exports = {
                 let date = split[0].split('-');
                 let time = split[1].split(':') ;
                 let timestamp = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]).getTime();     
-                let myObject = {
-                    customer_name: element.customer_logs_docs.name,
+
+                let new_customer_name = element.customer_logs_docs.name;
+                if(new_customer_name.length > 22) {
+                    new_customer_name = element.customer_logs_docs.name.substring(0, 22 - 2);
+                    new_customer_name = new_customer_name + "..";
+                }
+
+                let new_host_alias = element.host_logs_docs.host_alias;
+                
+                if(new_host_alias.length > 22) {
+                    new_host_alias = element.host_logs_docs.host_alias.substring(0, 22 - 2);
+                    new_host_alias = new_host_alias + "..";
+                }
+
+                let new_service_name = element.service_logs_docs.name;
+                if(new_service_name.length > 22) {
+                    new_service_name = element.service_logs_docs.name.substring(0, 22 - 2);
+                    new_service_name = new_service_name + "..";
+                }
+
+                let myObject = {                    
+                    customer_name: new_customer_name,
                     customer_site_description: element.customer_site_logs_docs.description,
-                    host_alias: element.host_logs_docs.host_alias,
-                    service_name: element.service_logs_docs.name,
+                    host_alias: new_host_alias,
+                    service_name: new_service_name,
                     plugin_output: element.service_state,
                     created_at: timestamp,
                     date: '',
@@ -321,10 +341,23 @@ module.exports = {
             let date = split[0].split('-');
             let time = split[1].split(':') ;
             let timestamp = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]).getTime();
+
+            let new_customer_name = element.customer_logs_docs.name;
+            if(new_customer_name.length > 22) {
+                new_customer_name = element.customer_logs_docs.name.substring(0, 22 - 2);
+                new_customer_name = new_customer_name + "..";
+            }
+
+            let new_host_alias = element.host_logs_docs.host_alias;
+            if(new_host_alias.length > 22) {
+                new_host_alias = element.host_logs_docs.host_alias.substring(0, 22 - 2);
+                new_host_alias = new_host_alias + "..";
+            }
+
             let myObject = {
-                customer_name: element.customer_logs_docs.name,
+                customer_name: new_customer_name,
                 customer_site_description: element.customer_site_logs_docs.description,
-                host_alias: element.host_logs_docs.host_alias,
+                host_alias: new_host_alias,
                 service_name: '',
                 plugin_output: element.hard_state + 4,
                 created_at: timestamp,
@@ -340,20 +373,36 @@ module.exports = {
         for(let i = startFrom - 1; i > startFrom - 31; i--) {
             let check_change = new Date(records[i].created_at);
             let check_year = check_change.getFullYear();
-            let check_month = check_change.getMonth() + 1;
-            check_month = (check_month <= 9) ? "0" + check_month : check_month;
+            //let check_month = check_change.getMonth() + 1;
+            //check_month = (check_month <= 9) ? "0" + check_month : check_month;
             let check_day = check_change.getDate();
             check_day = (check_day <= 9) ? "0" + check_day : check_day;
             let check_hours = "0" + check_change.getHours();
             let check_minutes = "0" + check_change.getMinutes();
             let check_seconds = "0" + check_change.getSeconds();
-            let check_formattedTime = check_day + '-' + check_month + '-' + check_year;
-            let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+
+            let months = [
+                'Gen',
+                'Feb',
+                'Mar',
+                'Apr',
+                'Mag',
+                'Giu',
+                'Lug',
+                'Ago',
+                'Set',
+                'Ott',
+                'Nov',
+                'Dic'
+            ]
+
+            let check_formattedTime = check_day + ' ' + months[check_change.getMonth()] + '.';
+            let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2);
             records[i].created_at = check_formattedTime + ' ' + check_formattedTime_ex;
 
             records[i].date = check_formattedTime;
             records[i].time = check_formattedTime_ex;
-            
+
             response.push(records[i]);
         }
         
