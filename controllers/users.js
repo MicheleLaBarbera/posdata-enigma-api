@@ -8,9 +8,19 @@ const ServiceLastLog = require('../models/service_last_log');
 const ServiceAck = require('../models/service_ack');
 
 const { CreateJWToken } = require('../helpers/auth');
+const nodemailer = require('nodemailer');
+const crypto = require("crypto");
 
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'pos.scheduler.email@gmail.com',
+        pass: 'scheduler99'
+    }
+});
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -88,6 +98,8 @@ module.exports = {
             const match = await bcrypt.compare(req.value.body.password, user.password);
     
             if(match) {
+                let age = (req.value.body.remember) ? 604800 : 1800;
+
                 const token = CreateJWToken({
                     sessionData: {
                         'firstname': user.firstname,
@@ -95,7 +107,7 @@ module.exports = {
                         'role': user.role,
                         'id': user._id
                     },
-                    maxAge: 360000000
+                    maxAge: age
                 });
 
                 const customerUser = await CustomerUser.findOne( { user_id: user._id } );   
@@ -306,7 +318,6 @@ module.exports = {
     },
     newUserSite: async (req, res, next) => {   
         const checkSite = await UserCustomerSite.findOne({user_id: req.value.body.user_id, customer_site_id: req.value.body.customer_site_id});
-        console.log(checkSite)
 
         if(!checkSite) {
         
@@ -328,5 +339,46 @@ module.exports = {
                 }
             }); 
         }           
+    },
+    forgotPassword: async (req, res, next) => {
+        const { userId } = req.value.params;
+        const user = await User.findById(userId);
+
+        if(user) {
+            if(user.email) {
+                let newPassword = crypto.randomBytes(5).toString('hex');
+                
+                const mailOptions = {
+                    from: 'pos.scheduler.email@gmail.com', 
+                    to: user.email,
+                    subject: 'Enigma - Password dimenticata',
+                    html: '<p>Nuova password: <b>' + newPassword + '</b></p>'
+                };
+
+                transporter.sendMail(mailOptions, async (err, info) => {
+                    if(err) {
+                        res.status(403).json({
+                            'status': 403,
+                            'body': {
+                                'message': err
+                            }
+                        }); 
+                    }
+                    else {
+                        let newHashPassword = await bcrypt.hash(newPassword, saltRounds);
+                        let update = await User.update({ _id: userId }, { password: newHashPassword });
+
+                        if(update) {
+                            res.status(200).json({
+                                'status': 200,
+                                'body': {
+                                    'message': "E-Mail inviata con successo."
+                                }
+                            });   
+                        }                  
+                    }
+                });
+            }
+        }
     }
 };

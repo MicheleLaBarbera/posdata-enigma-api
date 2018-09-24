@@ -58,7 +58,8 @@ module.exports = {
         }),
         authSchema: Joi.object().keys({
             username: Joi.string().required(),
-            password: Joi.string().required()
+            password: Joi.string().required(),
+            remember: Joi.number().required()
         }),
         customerSchema: Joi.object().keys({
             name: Joi.string().required(),            

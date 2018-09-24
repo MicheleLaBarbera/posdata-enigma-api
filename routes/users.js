@@ -22,6 +22,9 @@ router.route('/:userId/sites/:siteId/hostgroups')
 router.route('/:userId/sites/')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), UsersController.getUserSites);
 
+router.route('/:userId/forgot/')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), UsersController.forgotPassword);
+
 router.route('/sites')
     .post(verifyJWT_MW, validateBody(schemas.userSiteSchema), UsersController.newUserSite);
 
