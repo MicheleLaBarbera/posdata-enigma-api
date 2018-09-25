@@ -3,7 +3,8 @@ const Schema = mongoose.Schema;
 
 const ServiceSchema = new Schema({
     host_id: Schema.Types.ObjectId,
-    name: String
+    name: String,
+    visible: Number
 });
 
 const Service = mongoose.model('services', ServiceSchema);

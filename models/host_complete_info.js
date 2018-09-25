@@ -10,6 +10,8 @@ const HostCompleteInfoSchema = new Schema({
     host_num_services_warn: Number,
     hard_state: Number,
     created_at: String,
+    customer_site_id: String,
+    host_group_id: String,
     host_logs_docs: {
         customer_site_id: Schema.Types.ObjectId,
         host_group_id: Schema.Types.ObjectId,

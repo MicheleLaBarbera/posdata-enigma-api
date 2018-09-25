@@ -6,6 +6,7 @@ const CustomerSite = require('../models/customer_site');
 const HostGroup = require('../models/host_group');
 const ServiceLastLog = require('../models/service_last_log');
 const ServiceAck = require('../models/service_ack');
+const Service = require('../models/service');
 
 const { CreateJWToken } = require('../helpers/auth');
 const nodemailer = require('nodemailer');
@@ -181,57 +182,72 @@ module.exports = {
                             break;
                         }
                         case 1: {
-                            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                            if(service_ack[0] != null) {
-                                customerSiteObject.services_pending++;
-                                customerSiteObject.services_ok++;
-                            }
-                            else {
-                                customerSiteObject.services_warn++;
-
-                                hostGroups.forEach(group => {                            
-                                    if(group._id.toString() == element.host_group_id.toString()) {     
-                                        if(group.worst_service_state == 0)                           
-                                            group.worst_service_state = 1;                                        
+                            let service = await Service.findById(element.service_id);
+                            if(service) {
+                                if(service.visible) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                                    if(service_ack[0] != null) {
+                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ok++;
                                     }
-                                });
-                            }                   
+                                    else {
+                                        customerSiteObject.services_warn++;
+
+                                        hostGroups.forEach(group => {                            
+                                            if(group._id.toString() == element.host_group_id.toString()) {     
+                                                if(group.worst_service_state == 0)                           
+                                                    group.worst_service_state = 1;                                        
+                                            }
+                                        });
+                                    }     
+                                }       
+                            }       
                             break;
                         }
                         case 2: {
-                            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                            if(service_ack[0] != null) {
-                                customerSiteObject.services_pending++;
-                                customerSiteObject.services_ok++;
-                            }
-                            else {
-                                customerSiteObject.services_crit++;
-
-                                hostGroups.forEach(group => {                             
-                                    if(group._id.toString() == element.host_group_id.toString()) {     
-                                        if(group.worst_service_state == 0 || group.worst_service_state == 1) {                          
-                                            group.worst_service_state = 2;        
-                                        }                                
+                            let service = await Service.findById(element.service_id);
+                            if(service) {
+                                if(service.visible) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                                    if(service_ack[0] != null) {
+                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ok++;
                                     }
-                                });
-                            }                     
+                                    else {
+                                        customerSiteObject.services_crit++;
+
+                                        hostGroups.forEach(group => {                             
+                                            if(group._id.toString() == element.host_group_id.toString()) {     
+                                                if(group.worst_service_state == 0 || group.worst_service_state == 1) {                          
+                                                    group.worst_service_state = 2;        
+                                                }                                
+                                            }
+                                        });
+                                    }         
+                                }
+                            }            
                             break;
                         }
                         case 3: {
-                            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                            if(service_ack[0] != null) {
-                                customerSiteObject.services_pending++;
-                                customerSiteObject.services_ok++;
-                            }
-                            else {
-                                customerSiteObject.services_unknown++;
-
-                                hostGroups.forEach(group => {                   
-                                    if(group._id.toString() == element.host_group_id.toString()) {                             
-                                        group.worst_service_state = 3;                                        
+                            let service = await Service.findById(element.service_id);
+                            if(service) {
+                                if(service.visible) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                                    if(service_ack[0] != null) {
+                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ok++;
                                     }
-                                });
-                            }                 
+                                    else {
+                                        customerSiteObject.services_unknown++;
+
+                                        hostGroups.forEach(group => {                   
+                                            if(group._id.toString() == element.host_group_id.toString()) {                             
+                                                group.worst_service_state = 3;                                        
+                                            }
+                                        });
+                                    }  
+                                }
+                            }               
                             break;
                         }
                     }
@@ -279,16 +295,89 @@ module.exports = {
                     customerSiteObject.hosts_down += element.num_hosts_down;
                     customerSiteObject.hosts_pending += element.num_hosts_pending;
                     customerSiteObject.hosts_unreachable += element.num_hosts_unreach;
-                    customerSiteObject.hosts_up += element.num_hosts_up;
-                    customerSiteObject.services_crit += element.num_services_crit;
-                    customerSiteObject.services_ok += element.num_services_ok;
-                    customerSiteObject.services_pending += element.num_services_pending;
-                    customerSiteObject.services_unknown += element.num_services_unknown;
-                    customerSiteObject.services_warn += element.num_services_warn;
-                    
+                    customerSiteObject.hosts_up += element.num_hosts_up;                    
                     var toArray =  element.alias.split("-");
                     element.alias = toArray[1];                
                 });     
+                const services = await ServiceLastLog.find({ customer_site_id: siteId });                
+                
+                await asyncForEach(services, async (element) => {
+                    switch(element.service_state) {
+                        case 0: {
+                            customerSiteObject.services_ok++;                       
+                            break;
+                        }
+                        case 1: {
+                            let service = await Service.findById(element.service_id);
+                            if(service) {
+                                if(service.visible) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                                    if(service_ack[0] != null) {
+                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ok++;
+                                    }
+                                    else {
+                                        customerSiteObject.services_warn++;
+
+                                        hostGroups.forEach(group => {                            
+                                            if(group._id.toString() == element.host_group_id.toString()) {     
+                                                if(group.worst_service_state == 0)                           
+                                                    group.worst_service_state = 1;                                        
+                                            }
+                                        });
+                                    }     
+                                }       
+                            }       
+                            break;
+                        }
+                        case 2: {
+                            let service = await Service.findById(element.service_id);
+                            if(service) {
+                                if(service.visible) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                                    if(service_ack[0] != null) {
+                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ok++;
+                                    }
+                                    else {
+                                        customerSiteObject.services_crit++;
+
+                                        hostGroups.forEach(group => {                             
+                                            if(group._id.toString() == element.host_group_id.toString()) {     
+                                                if(group.worst_service_state == 0 || group.worst_service_state == 1) {                          
+                                                    group.worst_service_state = 2;        
+                                                }                                
+                                            }
+                                        });
+                                    }         
+                                }
+                            }            
+                            break;
+                        }
+                        case 3: {
+                            let service = await Service.findById(element.service_id);
+                            if(service) {
+                                if(service.visible) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                                    if(service_ack[0] != null) {
+                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ok++;
+                                    }
+                                    else {
+                                        customerSiteObject.services_unknown++;
+
+                                        hostGroups.forEach(group => {                   
+                                            if(group._id.toString() == element.host_group_id.toString()) {                             
+                                                group.worst_service_state = 3;                                        
+                                            }
+                                        });
+                                    }  
+                                }
+                            }               
+                            break;
+                        }
+                    }
+                });
                 res.status(200).json(customerSiteObject); 
             }    
         }

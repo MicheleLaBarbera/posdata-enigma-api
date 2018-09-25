@@ -328,7 +328,9 @@ module.exports = {
                     plugin_output: element.service_state,
                     created_at: timestamp,
                     date: '',
-                    time: ''
+                    time: '',
+                    customer_site_id: element.customer_site_id,
+                    host_group_id: element.host_group_id
                 };
                 results.push(myObject);
             }        
@@ -362,7 +364,9 @@ module.exports = {
                 plugin_output: element.hard_state + 4,
                 created_at: timestamp,
                 date: '',
-                time: ''
+                time: '',
+                customer_site_id: element.customer_site_id,
+                host_group_id: element.host_group_id
             };
             results.push(myObject);
         });

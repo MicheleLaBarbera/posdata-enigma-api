@@ -10,6 +10,8 @@ const ServiceCompleteInfoSchema = new Schema({
     host_id: Schema.Types.ObjectId,
     service_last_check: Number,
     created_at: String,
+    customer_site_id: String,
+    host_group_id: String,
     service_logs_docs: {
         name: String,
         host_id: Schema.Types.ObjectId,
