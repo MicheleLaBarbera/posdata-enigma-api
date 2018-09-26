@@ -42,7 +42,7 @@ module.exports = {
         }),
         stateIdSchema: Joi.object().keys({
             param: Joi.number().required()
-        }),
+        }), 
         nrSchema: Joi.object().keys({
             param: Joi.number().required()
         }),

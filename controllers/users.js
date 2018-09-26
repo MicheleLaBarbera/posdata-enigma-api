@@ -7,6 +7,7 @@ const HostGroup = require('../models/host_group');
 const ServiceLastLog = require('../models/service_last_log');
 const ServiceAck = require('../models/service_ack');
 const Service = require('../models/service');
+const CustomerSiteLastLog = require('../models/customer_site_last_log');
 
 const { CreateJWToken } = require('../helpers/auth');
 const nodemailer = require('nodemailer');
@@ -159,7 +160,8 @@ module.exports = {
                     'services_pending': 0,
                     'services_unknown': 0,
                     'services_warn': 0,                   
-                    'groups': hostGroups                
+                    'groups': hostGroups,
+                    'check_state': 0              
                 }
                 hostGroups.forEach(element => {
                     customerSiteObject.hosts_down += element.num_hosts_down;
@@ -172,6 +174,9 @@ module.exports = {
                     element.alias = toArray[1];                    
                 });
 
+                const last_log = await CustomerSiteLastLog.findOne({ customer_site_id: element.customer_site_id });
+                if(last_log)
+                    customerSiteObject.check_state = last_log.state;
 
                 const services = await ServiceLastLog.find({ customer_site_id: element.customer_site_id });                
                 
@@ -289,16 +294,23 @@ module.exports = {
                     'services_pending': 0,
                     'services_unknown': 0,
                     'services_warn': 0,                   
-                    'groups': hostGroups                
+                    'groups': hostGroups,
+                    'check_state': 0             
                 }
                 hostGroups.forEach(element => {
                     customerSiteObject.hosts_down += element.num_hosts_down;
                     customerSiteObject.hosts_pending += element.num_hosts_pending;
                     customerSiteObject.hosts_unreachable += element.num_hosts_unreach;
-                    customerSiteObject.hosts_up += element.num_hosts_up;                    
+                    customerSiteObject.hosts_up += element.num_hosts_up;     
+                    element.worst_service_state = 0; 
+
                     var toArray =  element.alias.split("-");
                     element.alias = toArray[1];                
-                });     
+                });      
+
+                const last_log = await CustomerSiteLastLog.findOne({ customer_site_id: siteId });
+                customerSiteObject.check_state = last_log.state;
+                
                 const services = await ServiceLastLog.find({ customer_site_id: siteId });                
                 
                 await asyncForEach(services, async (element) => {
@@ -308,11 +320,11 @@ module.exports = {
                             break;
                         }
                         case 1: {
-                            let service = await Service.findById(element.service_id);
+                            let service = await Service.findById(element.service_id);                            
                             if(service) {
                                 if(service.visible) {
-                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                                    if(service_ack[0] != null) {
+                                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);                          
+                                    if(service_ack[0] != null) {                         
                                         customerSiteObject.services_pending++;
                                         customerSiteObject.services_ok++;
                                     }
@@ -331,11 +343,11 @@ module.exports = {
                             break;
                         }
                         case 2: {
-                            let service = await Service.findById(element.service_id);
+                            let service = await Service.findById(element.service_id);                
                             if(service) {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                                    if(service_ack[0] != null) {
+                                    if(service_ack[0] != null) {                                    
                                         customerSiteObject.services_pending++;
                                         customerSiteObject.services_ok++;
                                     }
