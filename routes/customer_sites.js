@@ -9,5 +9,7 @@ const { validateParam, validateBody, schemas } = require('../helpers/routeHelper
 router.route('/:siteId/state')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), CustomerSitesController.getCustomerSiteState);
 
+router.route('/:siteId')
+    .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), validateBody(schemas.patchCustomerSiteSchema), CustomerSitesController.replaceCustomerSite)
 
 module.exports = router;

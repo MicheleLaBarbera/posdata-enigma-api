@@ -4,6 +4,7 @@ const UserLog = require('../models/user_log');
 const User = require('../models/user');
 const UserCustomerSite = require('../models/user_customer_site');
 const CustomerSiteLog = require('../models/customer_site_log');
+const CustomerSiteLastLog = require('../models/customer_site_last_log');
 const Host = require('../models/host');
 const HostLog = require('../models/host_log');
 const HostGroup = require('../models/host_group');
@@ -112,6 +113,15 @@ module.exports = {
         });
       
         const customerSiteLog = await newCustomerSiteLog.save();    
+
+        let newCustomerSiteLastLog = new CustomerSiteLastLog({
+            'customer_site_id': customerSite._id,                
+            'created_at': final,
+            'state': 0
+        });
+      
+        const customerSiteLastLog = await newCustomerSiteLastLog.save();    
+
        
         const users = await User.find({ role: { $gt: 0 }});
         let sites = [];

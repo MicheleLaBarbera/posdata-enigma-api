@@ -79,6 +79,11 @@ module.exports = {
             email: Joi.string().email(),
             logo: Joi.string()
         }),
+        patchCustomerSiteSchema: Joi.object().keys({
+            ip_address: Joi.string(),
+            port_number: Joi.number(),
+            description: Joi.string()
+        }),
         customerSiteSchema: Joi.object().keys({
             customer_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             ip_address: Joi.string().required(),

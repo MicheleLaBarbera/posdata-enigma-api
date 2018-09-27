@@ -76,29 +76,34 @@ module.exports = {
 
         const services_last_log = await ServiceLastLog.find({ host_id: hostId });
         await asyncForEach(services_last_log, async (element) => {
-            let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-            let serviceAckObject = {};
-            if(service_ack[0] != null) {                    
-                const creator = await User.findById(service_ack[0].user_id);
-                serviceAckObject = {
-                    '_id': service_ack[0]._id,
-                    'service_id': service_ack[0].service_id,
-                    'creator_name': creator.username,
-                    'message': service_ack[0].message,
-                    'created_at': service_ack[0].created_at
-                };                
-            }
-            let service = await Service.findById(element.service_id);
+            let service = await Service.findById(element.service_id);                            
+            if(service) {
+                if(service.visible) {
+                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
+                    let serviceAckObject = {};
+                    if(service_ack[0] != null) {                    
+                        const creator = await User.findById(service_ack[0].user_id);
+                        serviceAckObject = {
+                            '_id': service_ack[0]._id,
+                            'service_id': service_ack[0].service_id,
+                            'creator_name': creator.username,
+                            'message': service_ack[0].message,
+                            'created_at': service_ack[0].created_at
+                        };                
+                    }
+                    //let service = await Service.findById(element.service_id);
 
-            let serviceObject = {
-                '_id': element.service_id,
-                'host_id': element.host_id,
-                'name': service.name,
-                'status': element.plugin_output,               
-                'state': element.service_state,             
-                'ack': serviceAckObject
-            }          
-            results.push(serviceObject);
+                    let serviceObject = {
+                        '_id': element.service_id,
+                        'host_id': element.host_id,
+                        'name': service.name,
+                        'status': element.plugin_output,               
+                        'state': element.service_state,             
+                        'ack': serviceAckObject
+                    }          
+                    results.push(serviceObject);
+                }
+            }
         });
 
         /*const services = await Service.find({ host_id: hostId});
