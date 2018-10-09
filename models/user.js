@@ -9,7 +9,9 @@ const UserSchema = new Schema({
     email: String,
     role: Number,
     telegram_id: String,
-    customer_name: String
+    customer_name: String,
+    reset_password_token: String,
+  	reset_password_expires: Date
 });
 
 const User = mongoose.model('users', UserSchema);

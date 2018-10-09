@@ -43,6 +43,9 @@ module.exports = {
         stateIdSchema: Joi.object().keys({
             param: Joi.number().required()
         }), 
+        recoverToken: Joi.object().keys({
+            param: Joi.string().required()
+        }), 
         nrSchema: Joi.object().keys({
             param: Joi.number().required()
         }),
@@ -105,6 +108,9 @@ module.exports = {
             message: Joi.string().required(),
             created_at: Joi.string().required(),
             expired: Joi.number().required()
-        })        
+        }),
+        recoverPasswordSchema: Joi.object().keys({
+            email: Joi.string().email().required(),
+        }) 
     }
 }

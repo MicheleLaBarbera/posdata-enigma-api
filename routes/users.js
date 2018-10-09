@@ -28,4 +28,10 @@ router.route('/:userId/forgot/')
 router.route('/sites')
     .post(verifyJWT_MW, validateBody(schemas.userSiteSchema), UsersController.newUserSite);
 
+router.route('/recover')
+    .post(validateBody(schemas.recoverPasswordSchema), UsersController.recoverPassword);
+
+router.route('/recover/:token')
+    .get(validateParam(schemas.recoverToken, 'token'), UsersController.checkRecoverToken);
+
 module.exports = router;

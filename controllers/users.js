@@ -481,5 +481,62 @@ module.exports = {
                 });
             }
         }
+    },
+    recoverPassword: async (req, res, next) => {       
+        let token = crypto.randomBytes(20).toString('hex');
+        let user = await User.findOne({ email: req.value.body.email });
+
+        if(!user) {
+           res.status(404).json("Indirizzo email inesistente.");
+        }
+        else {
+            user.reset_password_token = token;
+            user.reset_password_expires = Date.now() + 3600000; 
+
+            let save_result = await user.save();
+    
+            const mailOptions = {
+                from: 'pos.scheduler.email@gmail.com', 
+                to: user.email,
+                subject: 'Enigma - Richiesta ripristino password',
+                html: '<p>La tua password può essere ripristinata cliccando il link qui sotto:</p>' + 
+                      "<a href='http://localhost:4200/reset/" + token + "'>Ripristina Password</a>" +
+                      '<p>Se non hai richiesto una nuova password, puoi ignorare questa email.</p>'                     
+            };
+
+            transporter.sendMail(mailOptions, async (err, info) => {
+                if(err) {
+                    res.status(403).json({
+                        'status': 403,
+                        'body': {
+                            'message': err
+                        }
+                    }); 
+                }
+                else {
+                    res.status(200).json({
+                        'status': 200,
+                        'body': {
+                            'message': "E-Mail inviata con successo."
+                        }
+                    });                                     
+                }
+            });
+        }
+    },
+    checkRecoverToken: async (req, res, next) => {
+        const { token } = req.value.params;
+        let user = await User.findOne({ reset_password_token: token });
+        if(!user) {
+           res.status(201).json("Token inesistente.");
+        }
+        else {
+            res.status(200).json({
+                'status': 200,
+                'body': {
+                    'message': "Token valido."
+                }
+            });
+        }
     }
 };

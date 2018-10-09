@@ -165,6 +165,7 @@ module.exports = {
             }
         });*/
         //console.log(results);
+        //res.status(200).json(results.sort(predicate('state', 'name')));
         res.status(200).json(results);
     },
     newServiceAck: async (req, res, next) => {     
