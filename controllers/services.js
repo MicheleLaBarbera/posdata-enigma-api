@@ -93,6 +93,11 @@ module.exports = {
                     }
                     //let service = await Service.findById(element.service_id);
 
+                    if(element.service_state == 2)
+                        element.service_state = 0;
+                    else if(element.service_state == 0)
+                        element.service_state = 2;
+
                     let serviceObject = {
                         '_id': element.service_id,
                         'host_id': element.host_id,
@@ -166,7 +171,11 @@ module.exports = {
         });*/
         //console.log(results);
         //res.status(200).json(results.sort(predicate('state', 'name')));
-        res.status(200).json(results);
+        //let newObj = results.sort(predicate('state', 'name'));
+
+        //console.log(newObj.reverse());
+        res.status(200).json(results.sort(predicate('state', 'name')));
+        //res.status(200).json(results);
     },
     newServiceAck: async (req, res, next) => {     
         const newServiceAck = new ServiceAck(req.value.body);
@@ -262,33 +271,38 @@ module.exports = {
         let results = [];
         const services_last_log = await ServiceCompleteInfo.find({ service_state: stateId });      
 
-        await asyncForEach(services_last_log, async (element) => {        
-            if(element.service_state == stateId) {              
-                if(stateId != 0) {
-                    const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });
-              
-                    if(!service_ack) {                     
-                        let myObject = {
-                            customer_name: element.customer_logs_docs.name,
-                            customer_site_description: element.customer_site_logs_docs.description,
-                            host_alias: element.host_logs_docs.host_alias,
-                            service_name: element.service_logs_docs.name,
-                            plugin_output: element.plugin_output,
-                            created_at: element.created_at
-                        };
-                        results.push(myObject);
+        await asyncForEach(services_last_log, async (element) => {   
+            let service = await Service.findById(element.service_id);                            
+            if(service) {
+                if(service.visible) {     
+                    if(element.service_state == stateId) {              
+                        if(stateId != 0) {
+                            const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });
+                      
+                            if(!service_ack) {                     
+                                let myObject = {
+                                    customer_name: element.customer_logs_docs.name,
+                                    customer_site_description: element.customer_site_logs_docs.description,
+                                    host_alias: element.host_logs_docs.host_alias,
+                                    service_name: element.service_logs_docs.name,
+                                    plugin_output: element.plugin_output,
+                                    created_at: element.created_at
+                                };
+                                results.push(myObject);
+                            }
+                        }
+                        else {
+                            let myObject = {
+                                customer_name: element.customer_logs_docs.name,
+                                customer_site_description: element.customer_site_logs_docs.description,
+                                host_alias: element.host_logs_docs.host_alias,
+                                service_name: element.service_logs_docs.name,
+                                plugin_output: element.plugin_output,
+                                created_at: element.created_at
+                            };
+                            results.push(myObject);
+                        }
                     }
-                }
-                else {
-                    let myObject = {
-                        customer_name: element.customer_logs_docs.name,
-                        customer_site_description: element.customer_site_logs_docs.description,
-                        host_alias: element.host_logs_docs.host_alias,
-                        service_name: element.service_logs_docs.name,
-                        plugin_output: element.plugin_output,
-                        created_at: element.created_at
-                    };
-                    results.push(myObject);
                 }
             }
         });     
