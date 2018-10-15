@@ -89,26 +89,28 @@ module.exports = {
                 let ok = host_state.host_num_services_ok;
                 let unknown = host_state.host_num_services_unknown;
                 let warn = host_state.host_num_services_warn;
+                let ack = 0;
 
                 await asyncForEach(service_acks, async (service_ack) => {      
                     if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state.host_id)) {        
+
                         const service_log = await ServiceLastLog.findOne({ service_id: service_ack.service_id });
 
                         if(service_log != null) {    
                             switch(service_log.service_state) {
                                 case 1: {
                                     warn--;
-                                    ok++;
+                                    ack++;
                                     break;
                                 }
                                 case 2: {
                                     crit--;
-                                    ok++;       
+                                    ack++;       
                                     break;
                                 }
                                 case 3: {
                                     unknown--;
-                                    ok++;
+                                    ack++;
                                     break;
                                 }
                             }
@@ -124,7 +126,8 @@ module.exports = {
                     'unknown': unknown,
                     'warn': warn,
                     'hard_state': host_state.hard_state,
-                    'acks': element.acks
+                    'acks': element.acks,
+                    'ack_num': ack
                 };    
                 results.push(hostObject);
             }
@@ -149,6 +152,7 @@ module.exports = {
                         let ok = host_state.host_num_services_ok;
                         let unknown = host_state.host_num_services_unknown;
                         let warn = host_state.host_num_services_warn;
+                        let ack = 0;
 
                         await asyncForEach(service_acks, async (service_ack) => {  
                             if(JSON.stringify(service_ack.host_id) == JSON.stringify(host_state.host_id)) {                              
@@ -158,17 +162,17 @@ module.exports = {
                                     switch(service_log[0].service_state) {
                                         case 1: {
                                             warn--;
-                                            ok++;
+                                            ack++;
                                             break;
                                         }
                                         case 2: {
                                             crit--;
-                                            ok++;       
+                                            ack++;
                                             break;
                                         }
                                         case 3: {
                                             unknown--;
-                                            ok++;
+                                            ack++;
                                             break;
                                         }
                                     }
@@ -190,7 +194,8 @@ module.exports = {
                                             'warn': warn,
                                             'name': customer.name,
                                             'site': customer_site.description,
-                                            'acks': element.acks
+                                            'acks': element.acks,
+                                            'ack_num': ack
                                         };
                                         results.push(hostObject);  
                                     }

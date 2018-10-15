@@ -7,6 +7,8 @@ const User = require('../models/user');
 const ServiceCompleteInfo = require('../models/service_complete_info');
 const HostCompleteInfo = require('../models/host_complete_info');
 const ObjectId = require('mongoose').Types.ObjectId;
+const CustomerSite = require('../models/customer_site');
+const Customer = require('../models/customer');
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -269,43 +271,87 @@ module.exports = {
     getServicesByState: async (req, res, next) => {
         const { stateId } = req.value.params;
         let results = [];
-        const services_last_log = await ServiceCompleteInfo.find({ service_state: stateId });      
+        if(stateId != 4) {
+            const services_last_log = await ServiceCompleteInfo.find({ service_state: stateId });      
 
-        await asyncForEach(services_last_log, async (element) => {   
-            let service = await Service.findById(element.service_id);                            
-            if(service) {
-                if(service.visible) {     
-                    if(element.service_state == stateId) {              
-                        if(stateId != 0) {
-                            const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });
-                      
-                            if(!service_ack) {                     
+            await asyncForEach(services_last_log, async (element) => {   
+                let service = await Service.findById(element.service_id);                            
+                if(service) {
+                    if(service.visible) {     
+                        if(element.service_state == stateId) {              
+                            if(stateId != 0) {
+                                const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });
+                          
+                                if(!service_ack) {                     
+                                    let myObject = {
+                                        customer_name: element.customer_logs_docs.name,
+                                        customer_site_description: element.customer_site_logs_docs.description,
+                                        host_alias: element.host_logs_docs.host_alias,
+                                        service_name: element.service_logs_docs.name,
+                                        plugin_output: element.plugin_output,
+                                        created_at: element.created_at,
+                                        author: '',
+                                        _id: '',
+                                        service_id: ''
+                                    };
+                                    results.push(myObject);
+                                }
+                            }
+                            else {
                                 let myObject = {
                                     customer_name: element.customer_logs_docs.name,
                                     customer_site_description: element.customer_site_logs_docs.description,
                                     host_alias: element.host_logs_docs.host_alias,
                                     service_name: element.service_logs_docs.name,
                                     plugin_output: element.plugin_output,
-                                    created_at: element.created_at
+                                    created_at: element.created_at,
+                                    author: '',
+                                    _id: '',
+                                    service_id: ''
                                 };
                                 results.push(myObject);
                             }
                         }
-                        else {
-                            let myObject = {
-                                customer_name: element.customer_logs_docs.name,
-                                customer_site_description: element.customer_site_logs_docs.description,
-                                host_alias: element.host_logs_docs.host_alias,
-                                service_name: element.service_logs_docs.name,
-                                plugin_output: element.plugin_output,
-                                created_at: element.created_at
-                            };
-                            results.push(myObject);
-                        }
                     }
                 }
+            });   
+        }
+        else {
+            const services_acks = await ServiceAck.find({expired: 0}); 
+            if(services_acks) {
+                await asyncForEach(services_acks, async (element) => {   
+                    let service = await Service.findById(element.service_id);                            
+                    if(service) {
+                        if(service.visible) {
+                            let host = await Host.findById(service.host_id);
+                            if(host) {
+                                let customer_site = await CustomerSite.findById(host.customer_site_id);
+                                if(customer_site) {
+                                    let customer = await Customer.findById(customer_site.customer_id);
+                                    if(customer) {
+                                        let user = await User.findById(element.user_id);
+                                        if(user) {
+                                            let myObject = {
+                                                customer_name: customer.name,
+                                                customer_site_description: customer_site.description,
+                                                host_alias: host.host_alias,
+                                                service_name: service.name,
+                                                plugin_output: element.message,
+                                                created_at: element.created_at,
+                                                author: user.firstname + ' ' + user.lastname + ' (' + user.username + ')',
+                                                _id: element._id,
+                                                service_id: service._id,
+                                            };
+                                            results.push(myObject);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }      
+                });                  
             }
-        });     
+        }  
         res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
 
     },

@@ -100,7 +100,7 @@ module.exports = {
                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                     if(service_ack[0] != null) {
                         results.services_ack++;
-                        results.services_ok++;
+                        //results.services_ok++;
                     }
                     else {
                         results.services_warn++;
@@ -112,7 +112,7 @@ module.exports = {
                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                     if(service_ack[0] != null) {
                         results.services_ack++;
-                        results.services_ok++;
+                        //results.services_ok++;
                     }
                     else {
                         results.services_crit++;
@@ -124,7 +124,7 @@ module.exports = {
                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                     if(service_ack[0] != null) {
                         results.services_ack++;
-                        results.services_ok++;
+                        //results.services_ok++;
                     }
                     else {
                         results.services_unkn++;
