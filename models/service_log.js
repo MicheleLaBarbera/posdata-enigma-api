@@ -8,7 +8,8 @@ const ServiceLogSchema = new Schema({
     service_last_state_change: Number,    
     service_last_check: Number,
     created_at: String,
-    host_id: Schema.Types.ObjectId
+    host_id: Schema.Types.ObjectId,
+    previous_state: Number,
 });
 
 const ServiceLog = mongoose.model('services_logs', ServiceLogSchema);

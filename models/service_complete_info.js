@@ -12,6 +12,7 @@ const ServiceCompleteInfoSchema = new Schema({
     created_at: String,
     customer_site_id: String,
     host_group_id: String,
+    previous_state: Number,
     service_logs_docs: {
         name: String,
         host_id: Schema.Types.ObjectId,

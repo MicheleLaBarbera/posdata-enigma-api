@@ -10,7 +10,8 @@ const ServiceLastLogSchema = new Schema({
     created_at: String,
     host_id: Schema.Types.ObjectId,
     host_group_id: Schema.Types.ObjectId,
-    customer_site_id: Schema.Types.ObjectId
+    customer_site_id: Schema.Types.ObjectId,
+    previous_state: Number,
 });
 
 const ServiceLastLog = mongoose.model('services_last_logs', ServiceLastLogSchema);

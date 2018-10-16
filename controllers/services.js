@@ -357,8 +357,12 @@ module.exports = {
     },
     getServicesChange: async (req, res, next) => {
         let results = [];
-        const services_last_log = await ServiceCompleteInfo.find().sort({ created_at: -1 }).limit(30);
-        
+        const services_last_log = await ServiceCompleteInfo.find(
+            {
+                $expr: {$ne: ["$service_state", "$previous_state"]},
+                previous_state: { $ne: null } 
+            }).sort({ created_at: -1 }).limit(30);
+        //console.log(services_last_log);
         await asyncForEach(services_last_log, async (element) => {        
             const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });            
             if(!service_ack) {              
@@ -368,21 +372,21 @@ module.exports = {
                 let timestamp = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]).getTime();     
 
                 let new_customer_name = element.customer_logs_docs.name;
-                if(new_customer_name.length > 22) {
-                    new_customer_name = element.customer_logs_docs.name.substring(0, 22 - 2);
+                if(new_customer_name.length > 30) {
+                    new_customer_name = element.customer_logs_docs.name.substring(0, 30 - 2);
                     new_customer_name = new_customer_name + "..";
                 }
 
                 let new_host_alias = element.host_logs_docs.host_alias;
                 
-                if(new_host_alias.length > 22) {
-                    new_host_alias = element.host_logs_docs.host_alias.substring(0, 22 - 2);
+                if(new_host_alias.length > 30) {
+                    new_host_alias = element.host_logs_docs.host_alias.substring(0, 30 - 2);
                     new_host_alias = new_host_alias + "..";
                 }
 
                 let new_service_name = element.service_logs_docs.name;
-                if(new_service_name.length > 22) {
-                    new_service_name = element.service_logs_docs.name.substring(0, 22 - 2);
+                if(new_service_name.length > 30) {
+                    new_service_name = element.service_logs_docs.name.substring(0, 30 - 2);
                     new_service_name = new_service_name + "..";
                 }
 
@@ -411,14 +415,14 @@ module.exports = {
             let timestamp = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]).getTime();
 
             let new_customer_name = element.customer_logs_docs.name;
-            if(new_customer_name.length > 22) {
-                new_customer_name = element.customer_logs_docs.name.substring(0, 22 - 2);
+            if(new_customer_name.length > 30) {
+                new_customer_name = element.customer_logs_docs.name.substring(0, 30 - 2);
                 new_customer_name = new_customer_name + "..";
             }
 
             let new_host_alias = element.host_logs_docs.host_alias;
-            if(new_host_alias.length > 22) {
-                new_host_alias = element.host_logs_docs.host_alias.substring(0, 22 - 2);
+            if(new_host_alias.length > 30) {
+                new_host_alias = element.host_logs_docs.host_alias.substring(0, 30 - 2);
                 new_host_alias = new_host_alias + "..";
             }
 
