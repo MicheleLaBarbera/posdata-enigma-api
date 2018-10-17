@@ -88,7 +88,7 @@ module.exports = {
                         serviceAckObject = {
                             '_id': service_ack[0]._id,
                             'service_id': service_ack[0].service_id,
-                            'creator_name': creator.username,
+                            'creator_name': creator.firstname + ' ' + creator.lastname,
                             'message': service_ack[0].message,
                             'created_at': service_ack[0].created_at
                         };                
@@ -188,7 +188,7 @@ module.exports = {
             '_id': serviceAck._id,
             'host_id': serviceAck.host_id,
             'service_id': serviceAck.service_id,
-            'creator_name': creator.username,
+            'creator_name': creator.firstname + ' ' + creator.lastname,
             'message': serviceAck.message,
             'created_at': serviceAck.created_at,
             'expired': serviceAck.expired
@@ -213,7 +213,7 @@ module.exports = {
             serviceAckObject = {
                 '_id': service_ack[0]._id,
                 'service_id': service_ack[0].service_id,
-                'creator_name': creator.username,
+                'creator_name': creator.firstname + ' ' + creator.lastname,
                 'message': service_ack[0].message,
                 'created_at': service_ack[0].created_at
             };
@@ -338,7 +338,7 @@ module.exports = {
                                                 service_name: service.name,
                                                 plugin_output: element.message,
                                                 created_at: element.created_at,
-                                                author: user.firstname + ' ' + user.lastname + ' (' + user.username + ')',
+                                                author: user.firstname + ' ' + user.lastname,
                                                 _id: element._id,
                                                 service_id: service._id,
                                             };
@@ -362,7 +362,7 @@ module.exports = {
                 $expr: {$ne: ["$service_state", "$previous_state"]},
                 previous_state: { $ne: null } 
             }).sort({ created_at: -1 }).limit(30);
-        //console.log(services_last_log);
+
         await asyncForEach(services_last_log, async (element) => {        
             const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });            
             if(!service_ack) {              

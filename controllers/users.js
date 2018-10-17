@@ -157,7 +157,7 @@ module.exports = {
                     'hosts_up': 0,
                     'services_crit': 0,
                     'services_ok': 0,
-                    'services_pending': 0,
+                    'services_ack': 0,
                     'services_unknown': 0,
                     'services_warn': 0,                   
                     'groups': hostGroups,
@@ -192,7 +192,7 @@ module.exports = {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                                     if(service_ack[0] != null) {
-                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ack++;
                                         
                                         hostGroups.forEach(group => {                            
                                             if(group._id.toString() == element.host_group_id.toString()) {     
@@ -221,7 +221,7 @@ module.exports = {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                                     if(service_ack[0] != null) {
-                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ack++;
 
                                         hostGroups.forEach(group => {                            
                                             if(group._id.toString() == element.host_group_id.toString()) {     
@@ -252,7 +252,7 @@ module.exports = {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                                     if(service_ack[0] != null) {
-                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ack++;
 
                                         hostGroups.forEach(group => {                            
                                             if(group._id.toString() == element.host_group_id.toString()) {     
@@ -312,7 +312,7 @@ module.exports = {
                     'hosts_up': 0,
                     'services_crit': 0,
                     'services_ok': 0,
-                    'services_pending': 0,
+                    'services_ack': 0,
                     'services_unknown': 0,
                     'services_warn': 0,                   
                     'groups': hostGroups,
@@ -346,7 +346,7 @@ module.exports = {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);                          
                                     if(service_ack[0] != null) {                         
-                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ack++;
 
                                         hostGroups.forEach(group => {                            
                                             if(group._id.toString() == element.host_group_id.toString()) {     
@@ -376,7 +376,7 @@ module.exports = {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                                     if(service_ack[0] != null) {                                    
-                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ack++;
                   
                                         hostGroups.forEach(group => {                            
                                             if(group._id.toString() == element.host_group_id.toString()) {     
@@ -407,7 +407,7 @@ module.exports = {
                                 if(service.visible) {
                                     let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
                                     if(service_ack[0] != null) {
-                                        customerSiteObject.services_pending++;
+                                        customerSiteObject.services_ack++;
             
                                         hostGroups.forEach(group => {                            
                                             if(group._id.toString() == element.host_group_id.toString()) {     
