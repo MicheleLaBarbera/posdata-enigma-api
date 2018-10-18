@@ -8,7 +8,8 @@ const HostLastLogSchema = new Schema({
     host_num_services_ok: Number,
     host_num_services_unknown: Number,
     host_num_services_warn: Number,
-    hard_state: Number
+    hard_state: Number,
+    customer_site_id: Schema.Types.ObjectId,
 });
 
 const HostLastLog = mongoose.model('hosts_last_logs', HostLastLogSchema);

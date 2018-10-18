@@ -6,6 +6,9 @@ const ServiceLog = require('../models/service_log');
 const ServiceLastLog = require('../models/service_last_log');
 const ServiceAck = require('../models/service_ack');
 const ObjectId = require('mongoose').Types.ObjectId;
+const ServiceCompleteInfo = require('../models/service_complete_info');
+const HostCompleteInfo = require('../models/host_complete_info');
+const Service = require('../models/service');
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -75,7 +78,7 @@ function predicate() {
     };
 }
 
-module.exports = {    
+module.exports = {        
     getServicesCount: async (req, res, next) => {
         const { hostGroupId } = req.value.params;
         

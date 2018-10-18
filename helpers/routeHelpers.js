@@ -105,6 +105,7 @@ module.exports = {
             host_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             service_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            customer_site_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             message: Joi.string().required(),
             created_at: Joi.string().required(),
             expired: Joi.number().required()

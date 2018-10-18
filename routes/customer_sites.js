@@ -12,4 +12,10 @@ router.route('/:siteId/state')
 router.route('/:siteId')
     .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), validateBody(schemas.patchCustomerSiteSchema), CustomerSitesController.replaceCustomerSite)
 
+router.route('/:siteId/services/state/:stateId')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), validateParam(schemas.stateIdSchema, 'stateId'), CustomerSitesController.getCustomerSiteServicesByState)
+
+router.route('/:siteId/hosts/state/:stateId')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), validateParam(schemas.stateIdSchema, 'stateId'), CustomerSitesController.getCustomerSiteHostsByState)
+
 module.exports = router;

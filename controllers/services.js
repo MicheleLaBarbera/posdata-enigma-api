@@ -188,8 +188,9 @@ module.exports = {
             '_id': serviceAck._id,
             'host_id': serviceAck.host_id,
             'service_id': serviceAck.service_id,
+            'customer_site_id': serviceAck.customer_site_id,
             'creator_name': creator.firstname + ' ' + creator.lastname,
-            'message': serviceAck.message,
+            'message': serviceAck.message,            
             'created_at': serviceAck.created_at,
             'expired': serviceAck.expired
         };
@@ -353,8 +354,7 @@ module.exports = {
             }
         }  
         res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
-
-    },
+    },    
     getServicesChange: async (req, res, next) => {
         let results = [];
         const services_last_log = await ServiceCompleteInfo.find(
