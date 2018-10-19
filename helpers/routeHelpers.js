@@ -108,7 +108,8 @@ module.exports = {
             customer_site_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
             message: Joi.string().required(),
             created_at: Joi.string().required(),
-            expired: Joi.number().required()
+            expired: Joi.number().required(),
+            code: Joi.string().regex(/^[0-9]/)
         }),
         recoverPasswordSchema: Joi.object().keys({
             email: Joi.string().email().required(),

@@ -8,7 +8,8 @@ const ServiceAckSchema = new Schema({
     customer_site_id: Schema.Types.ObjectId,
     message: String,
     created_at: String,
-    expired: Number
+    expired: Number,
+    code: String
 });
 
 const ServiceAck = mongoose.model('services_acks', ServiceAckSchema);

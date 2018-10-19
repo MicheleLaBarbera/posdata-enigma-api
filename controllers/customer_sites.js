@@ -116,7 +116,8 @@ module.exports = {
                                         created_at: element.created_at,
                                         author: '',
                                         _id: '',
-                                        service_id: ''
+                                        service_id: '',
+                                        code: ''
                                     };
                                     results.push(myObject);
                                 }
@@ -131,7 +132,8 @@ module.exports = {
                                     created_at: element.created_at,
                                     author: '',
                                     _id: '',
-                                    service_id: ''
+                                    service_id: '',
+                                    code: ''
                                 };
                                 results.push(myObject);
                             }
@@ -165,6 +167,7 @@ module.exports = {
                                                 author: user.firstname + ' ' + user.lastname,
                                                 _id: element._id,
                                                 service_id: service._id,
+                                                code: element.code
                                             };
                                             results.push(myObject);
                                         }

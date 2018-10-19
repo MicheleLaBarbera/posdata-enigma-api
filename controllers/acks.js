@@ -76,65 +76,7 @@ function predicate() {
 }
 
 module.exports = {    
-    getACKS: async (req, res, next) => {
-           
+    getACKS: async (req, res, next) => {           
         let service_ack = await ServiceAck.find({ expired: 0 }).sort({ created_at: -1 }).limit(1);
-
-        /*const services = await ServiceLastLog.find({ customer_site_id: hostGroupId });
-        
-        let results = {
-            services_ok: 0,
-            services_warn: 0,
-            services_crit: 0,
-            services_unkn: 0,
-            services_ack: 0,
-            services_total: 0
-        };
-        await asyncForEach(services, async (element) => {
-            switch(element.service_state) {
-                case 0: {
-                    results.services_ok++;
-                    results.services_total++;
-                    break;
-                }
-                case 1: {
-                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                    if(service_ack[0] != null) {
-                        results.services_ack++;
-                        results.services_ok++;
-                    }
-                    else {
-                        results.services_warn++;
-                    }
-                    results.services_total++;
-                    break;
-                }
-                case 2: {
-                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                    if(service_ack[0] != null) {
-                        results.services_ack++;
-                        results.services_ok++;
-                    }
-                    else {
-                        results.services_crit++;
-                    }
-                    results.services_total++;
-                    break;
-                }
-                case 3: {
-                    let service_ack = await ServiceAck.find({ service_id: element.service_id, expired: 0 }).sort({ created_at: -1 }).limit(1);
-                    if(service_ack[0] != null) {
-                        results.services_ack++;
-                        results.services_ok++;
-                    }
-                    else {
-                        results.services_unkn++;
-                    }
-                    results.services_total++;
-                    break;
-                }
-            }
-        });
-        res.status(200).json(results);*/
     }
 };
