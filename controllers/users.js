@@ -107,6 +107,7 @@ module.exports = {
                         'firstname': user.firstname,
                         'lastname': user.lastname,
                         'role': user.role,
+                        'email': user.email,                        
                         'id': user._id
                     },
                     maxAge: age
@@ -120,7 +121,8 @@ module.exports = {
                         'status': 200,
                         'body': {
                             'token': token,
-                            'logo': customer.logo
+                            'logo': customer.logo,
+                            'customer_name': customer.name
                         }
                     });       
                 }

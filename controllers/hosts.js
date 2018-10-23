@@ -98,6 +98,11 @@ module.exports = {
 
                         if(service_log != null) {    
                             switch(service_log.service_state) {
+                                case 0: {
+                                    ok--;
+                                    ack++;
+                                    break;
+                                }
                                 case 1: {
                                     warn--;
                                     ack++;
