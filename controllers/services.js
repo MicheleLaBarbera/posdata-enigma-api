@@ -101,13 +101,17 @@ module.exports = {
                     else if(element.service_state == 0)
                         element.service_state = 2;
 
+                    let date = new Date();
+                    let current = date.getTime();
+
                     let serviceObject = {
                         '_id': element.service_id,
                         'host_id': element.host_id,
                         'name': service.name,
                         'status': element.plugin_output,               
                         'state': element.service_state,             
-                        'ack': serviceAckObject
+                        'ack': serviceAckObject,
+                        'last_check': timeDifference(current, element.service_last_check * 1000)
                     }          
                     results.push(serviceObject);
                 }
@@ -299,8 +303,9 @@ module.exports = {
         let results = [];
         const services_last_log = await ServiceCompleteInfo.find(
             {
-                $expr: {$ne: ["$service_state", "$previous_state"]},
-                previous_state: { $ne: null } 
+                //$expr: {$ne: ["$service_state", "$previous_state"]},
+                previous_state: { $ne: null },
+                service_state: { $ne: 0 } 
             }).sort({ created_at: -1 }).limit(30);
 
         await asyncForEach(services_last_log, async (element) => {        
@@ -346,8 +351,8 @@ module.exports = {
             }        
         });   
 
-        const hosts_last_log = await HostCompleteInfo.find().sort({ created_at: -1 }).limit(30);
-
+        const hosts_last_log = await HostCompleteInfo.find({ hard_state: 1 }).sort({ created_at: -1 }).limit(30);
+        //console.log(hosts_last_log);
         await asyncForEach(hosts_last_log, async (element) => {
             let split = element.created_at.split(" ");
             let date = split[0].split('-');
@@ -383,8 +388,11 @@ module.exports = {
 
         let records = results.sort(predicate('created_at'));
         let startFrom = records.length;
+        //console.log(records);
         let response = [];
-        for(let i = startFrom - 1; i > startFrom - 31; i--) {
+
+        //if(startFrom > 32)
+        for(let i = startFrom - 1; i > 0; i--) {
             let check_change = new Date(records[i].created_at);
             let check_year = check_change.getFullYear();
             //let check_month = check_change.getMonth() + 1;
@@ -423,3 +431,62 @@ module.exports = {
         res.status(200).json(response);
     },
 };
+
+function timeDifference(current, previous) {
+    
+    var msPerMinute = 60 * 1000;
+    var msPerHour = msPerMinute * 60;
+    var msPerDay = msPerHour * 24;
+    
+    var elapsed = current - previous;
+    
+    if (elapsed < msPerMinute) {
+        let calc = Math.round(elapsed/1000);
+
+        if(calc == 1)
+            return calc + ' secondo fa';
+        else
+            return calc + ' secondi fa';
+        
+        //return Math.round(elapsed/1000) + ' secondi fa';   
+    }
+    
+    else if (elapsed < msPerHour) {
+        let calc = Math.round(elapsed/msPerMinute);
+
+        if(calc == 1)
+            return calc + ' minuto fa';
+        else 
+            return calc + ' minuti fa';
+
+        //return Math.round(elapsed/msPerMinute) + ' minuti fa';   
+    }
+    
+    else if (elapsed < msPerDay ) {
+        let calc = Math.round(elapsed/msPerHour );
+
+        if(calc == 1)
+            return calc + ' ora fa';
+        else 
+            return calc + ' ore fa'
+
+        //return Math.round(elapsed/msPerHour ) + ' ore fa';   
+    }
+    
+    else {
+        let check_change = new Date(previous);
+        let check_year = check_change.getFullYear();
+        let check_month = check_change.getMonth() + 1;
+        check_month = (check_month <= 9) ? "0" + check_month : check_month;
+        let check_day = check_change.getDate();
+        check_day = (check_day <= 9) ? "0" + check_day : check_day;
+        let check_hours = "0" + check_change.getHours();
+        let check_minutes = "0" + check_change.getMinutes();
+        let check_seconds = "0" + check_change.getSeconds();
+        let check_formattedTime = check_day + '-' + check_month + '-' + check_year;
+        let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2);
+        let full_date = check_formattedTime + ' ' + check_formattedTime_ex;
+
+         return full_date;   
+    }
+}
