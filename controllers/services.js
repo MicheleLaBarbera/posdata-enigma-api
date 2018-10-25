@@ -111,7 +111,8 @@ module.exports = {
                         'status': element.plugin_output,               
                         'state': element.service_state,             
                         'ack': serviceAckObject,
-                        'last_check': timeDifference(current, element.service_last_check * 1000)
+                        'last_check': timeDifference(current, element.service_last_check * 1000),
+                        'host_group_id': element.host_group_id
                     }          
                     results.push(serviceObject);
                 }
@@ -345,7 +346,7 @@ module.exports = {
                     date: '',
                     time: '',
                     customer_site_id: element.customer_site_id,
-                    host_group_id: element.host_group_id
+                    host_group_id: element.host_id
                 };
                 results.push(myObject);
             }        
@@ -381,7 +382,7 @@ module.exports = {
                 date: '',
                 time: '',
                 customer_site_id: element.customer_site_id,
-                host_group_id: element.host_group_id
+                host_group_id: element.host_id
             };
             results.push(myObject);
         });
