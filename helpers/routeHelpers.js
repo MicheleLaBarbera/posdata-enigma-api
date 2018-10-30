@@ -82,6 +82,12 @@ module.exports = {
             email: Joi.string().email(),
             logo: Joi.string()
         }),
+        patchAckSchema: Joi.object().keys({
+            user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
+            code: Joi.string(),            
+            message: Joi.string(),
+            updated_at: Joi.string()
+        }),
         patchCustomerSiteSchema: Joi.object().keys({
             ip_address: Joi.string(),
             port_number: Joi.number(),
@@ -109,7 +115,8 @@ module.exports = {
             message: Joi.string().required(),
             created_at: Joi.string().required(),
             expired: Joi.number().required(),
-            code: Joi.string().regex(/^[0-9]/)
+            code: Joi.string().regex(/^[0-9]/),
+            updated_at: Joi.string().required()
         }),
         recoverPasswordSchema: Joi.object().keys({
             email: Joi.string().email().required(),

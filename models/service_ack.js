@@ -9,7 +9,8 @@ const ServiceAckSchema = new Schema({
     message: String,
     created_at: String,
     expired: Number,
-    code: String
+    code: String,
+    updated_at: String
 });
 
 const ServiceAck = mongoose.model('services_acks', ServiceAckSchema);

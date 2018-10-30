@@ -283,8 +283,7 @@ module.exports = {
                 sites.push(customerSiteObject);    
             }       
         });
-//console.log(sites);
-        res.status(200).json(/*sites.sort(predicate('name'))*/sites);  
+        res.status(200).json(sites.sort(predicate('name'))/*sites*/);  
     },
     getUserCustomerSiteHostgroups: async (req, res, next) => {
         const userId = req.value.params.userId;

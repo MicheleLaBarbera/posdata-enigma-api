@@ -75,7 +75,27 @@ module.exports = {
     getHostServices: async (req, res, next) => {
         const { hostId } = req.value.params;
         let results = [];
+        /*let updatedServiceAcks = await ServiceAck.aggregate([{$addFields: {"updated_at": "$created_at"}}]);
+        await asyncForEach(updatedServiceAcks, async (element) => {
+            let ack = new ServiceAck();
+            let myAck = await ServiceAck.findById(element._id);
+            let removed = await myAck.remove();
+            console.log("Removed: " + removed);
+            ack._id= element._id;
+            ack.host_id= element.host_id;
+            ack.service_id= element.service_id;
+            ack.user_id= element.user_id;
+            ack.customer_site_id= element.customer_site_id;
+            ack.message= element.message;
+            ack.created_at= element.created_at;
+            ack.updated_at= element.updated_at;
+            ack.expired= element.expired;
+            console.log("New Ack: " + ack)
+            ack.code= element.code;
 
+            let result_save = ack.save();
+            console.log("Saved: " + result_save);
+        });*/
         const services_last_log = await ServiceLastLog.find({ host_id: hostId });
         await asyncForEach(services_last_log, async (element) => {
             let service = await Service.findById(element.service_id);                            
@@ -85,13 +105,15 @@ module.exports = {
                     let serviceAckObject = {};
                     if(service_ack[0] != null) {                    
                         const creator = await User.findById(service_ack[0].user_id);
+
                         serviceAckObject = {
                             '_id': service_ack[0]._id,
                             'service_id': service_ack[0].service_id,
                             'creator_name': creator.firstname + ' ' + creator.lastname,
                             'message': service_ack[0].message,
                             'created_at': service_ack[0].created_at,
-                            'code': service_ack[0].code
+                            'code': service_ack[0].code,
+                            'updated_at': service_ack[0].updated_at,
                         };                
                     }
                     //let service = await Service.findById(element.service_id);
@@ -133,6 +155,7 @@ module.exports = {
             'creator_name': creator.firstname + ' ' + creator.lastname,
             'message': serviceAck.message,            
             'created_at': serviceAck.created_at,
+            'updated_at': serviceAck.created_at,
             'expired': serviceAck.expired,
             'code': serviceAck.code
         };
@@ -151,6 +174,7 @@ module.exports = {
         const { serviceId } = req.value.params;
         const service_ack = await ServiceAck.find({ service_id: serviceId }).sort({ created_at: -1 }).limit(1);
         let serviceAckObject = {};
+
         if(service_ack) {
             const creator = await User.findById(service_ack[0].user_id);
             serviceAckObject = {
@@ -159,6 +183,7 @@ module.exports = {
                 'creator_name': creator.firstname + ' ' + creator.lastname,
                 'message': service_ack[0].message,
                 'created_at': service_ack[0].created_at,
+                'updated_at': service_ack[0].updated_at,
                 'code': service_ack[0].code
             };
         }
@@ -212,6 +237,37 @@ module.exports = {
             } 
         });
     },
+    patchServiceAck: async (req, res, next) => {
+        const { ackId } = req.value.params;
+        const newAck = req.value.body;
+
+        const result = await ServiceAck.findByIdAndUpdate(ackId, newAck);
+
+        const updatedACK = await ServiceAck.findById(ackId);
+
+        let serviceAckObject = {};
+        const creator = await User.findById(req.value.body.user_id);
+        serviceAckObject = {
+            '_id': updatedACK._id,
+            'host_id': updatedACK.host_id,
+            'service_id': updatedACK.service_id,
+            'customer_site_id': updatedACK.customer_site_id,
+            'creator_name': creator.firstname + ' ' + creator.lastname,
+            'message': updatedACK.message,            
+            'created_at': updatedACK.created_at,
+            'updated_at': updatedACK.updated_at,
+            'expired': updatedACK.expired,
+            'code': updatedACK.code
+        };
+
+        //console.log(updatedACK);
+        res.status(200).json({ 
+            'status': 200,
+            'body': {
+                'message': serviceAckObject
+            } 
+        });
+    },
     getServicesByState: async (req, res, next) => {
         const { stateId } = req.value.params;
         let results = [];
@@ -234,6 +290,7 @@ module.exports = {
                                         service_name: element.service_logs_docs.name,
                                         plugin_output: element.plugin_output,
                                         created_at: element.created_at,
+                                        updated_at: '',
                                         author: '',
                                         _id: '',
                                         service_id: '',
@@ -249,6 +306,7 @@ module.exports = {
                                     service_name: element.service_logs_docs.name,
                                     plugin_output: element.plugin_output,
                                     created_at: element.created_at,
+                                    updated_at: '',
                                     author: '',
                                     _id: '',
                                     service_id: '',
@@ -283,6 +341,7 @@ module.exports = {
                                                 service_name: service.name,
                                                 plugin_output: element.message,
                                                 created_at: element.created_at,
+                                                updated_at: element.updated_at,
                                                 author: user.firstname + ' ' + user.lastname,
                                                 _id: element._id,
                                                 service_id: service._id,

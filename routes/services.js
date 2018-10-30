@@ -20,7 +20,8 @@ router.route('/:serviceId/ack')
     .post(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), validateBody(schemas.serviceAckSchema), ServicesController.newServiceAck);
 
 router.route('/:serviceId/ack/:ackId')
-    .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'ackId'), ServicesController.deleteServiceAck);
+    .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'ackId'), ServicesController.deleteServiceAck)
+    .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'ackId'), validateBody(schemas.patchAckSchema), ServicesController.patchServiceAck);
 
 router.route('/:serviceId/logs')
     .get(verifyJWT_MW, validateParam(schemas.idSchema, 'serviceId'), ServicesController.getServiceLogs);
