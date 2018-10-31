@@ -34,4 +34,7 @@ router.route('/recover')
 router.route('/recover/:token')
     .get(validateParam(schemas.recoverToken, 'token'), UsersController.checkRecoverToken);
 
+router.route('/:userId/sites/:siteId')
+    .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateParam(schemas.idSchema, 'siteId'), UsersController.deleteUserCustomerSite);
+
 module.exports = router;

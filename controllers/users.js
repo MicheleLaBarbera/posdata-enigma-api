@@ -583,7 +583,20 @@ module.exports = {
                 }
             });
         }
-    }
+    },
+    deleteUserCustomerSite: async (req, res, next) => {
+        const { userId, siteId } = req.value.params;
+   
+        const userCustomerSite = await UserCustomerSite.findOne({user_id: userId, customer_site_id: siteId});    
+        await userCustomerSite.remove();   
+
+        res.status(200).json({ 
+            'status': 200,
+            'body': {
+                'success': true
+            } 
+        });       
+    },
 };
 
 

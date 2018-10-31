@@ -29,7 +29,10 @@ router.route('/:serviceId/logs')
 router.route('/state/:stateId')
     .get(verifyJWT_MW, validateParam(schemas.stateIdSchema, 'stateId'), ServicesController.getServicesByState);
 
-router.route('/change/:ok')
-    .get(verifyJWT_MW, ServicesController.getServicesChange);
+router.route('/change/user/:userId')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), ServicesController.getServicesChange);
+
+router.route('/change/site/:siteId')
+    .get(verifyJWT_MW, validateParam(schemas.idSchema, 'siteId'), ServicesController.getSiteServicesChange);
 
 module.exports = router;

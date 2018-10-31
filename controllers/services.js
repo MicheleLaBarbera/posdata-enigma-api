@@ -9,6 +9,7 @@ const HostCompleteInfo = require('../models/host_complete_info');
 const ObjectId = require('mongoose').Types.ObjectId;
 const CustomerSite = require('../models/customer_site');
 const Customer = require('../models/customer');
+const UserCustomerSite = require('../models/user_customer_site');
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -259,8 +260,6 @@ module.exports = {
             'expired': updatedACK.expired,
             'code': updatedACK.code
         };
-
-        //console.log(updatedACK);
         res.status(200).json({ 
             'status': 200,
             'body': {
@@ -360,13 +359,22 @@ module.exports = {
         res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
     },    
     getServicesChange: async (req, res, next) => {
+        const { userId } = req.value.params;    
+        const userCustomerSites = await UserCustomerSite.find({ user_id: userId});
+
+        let sitesIds = [];
+
+        await asyncForEach(userCustomerSites, async (element) => {
+            sitesIds.push(new ObjectId(element.customer_site_id));
+        });
+
         let results = [];
         const services_last_log = await ServiceCompleteInfo.find(
-            {
-                //$expr: {$ne: ["$service_state", "$previous_state"]},
-                previous_state: { $ne: null },
-                service_state: { $ne: 0 } 
-            }).sort({ created_at: -1 }).limit(30);
+        {                
+            customer_site_id: { $in: sitesIds},
+            previous_state: { $ne: null },
+            service_state: { $ne: 0 } 
+        }).sort({ created_at: -1 }).limit(30);
 
         await asyncForEach(services_last_log, async (element) => {        
             const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });            
@@ -411,7 +419,148 @@ module.exports = {
             }        
         });   
 
-        const hosts_last_log = await HostCompleteInfo.find({ hard_state: 1 }).sort({ created_at: -1 }).limit(30);
+        const hosts_last_log = await HostCompleteInfo.find(
+        { 
+            hard_state: 1,
+            customer_site_id: { $in: sitesIds},
+        }).sort({ created_at: -1 }).limit(30);
+        //console.log(hosts_last_log);
+        await asyncForEach(hosts_last_log, async (element) => {
+            let split = element.created_at.split(" ");
+            let date = split[0].split('-');
+            let time = split[1].split(':') ;
+            let timestamp = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]).getTime();
+
+            let new_customer_name = element.customer_logs_docs.name;
+            if(new_customer_name.length > 30) {
+                new_customer_name = element.customer_logs_docs.name.substring(0, 30 - 2);
+                new_customer_name = new_customer_name + "..";
+            }
+
+            let new_host_alias = element.host_logs_docs.host_alias;
+            if(new_host_alias.length > 30) {
+                new_host_alias = element.host_logs_docs.host_alias.substring(0, 30 - 2);
+                new_host_alias = new_host_alias + "..";
+            }
+
+            let myObject = {
+                customer_name: new_customer_name,
+                customer_site_description: element.customer_site_logs_docs.description,
+                host_alias: new_host_alias,
+                service_name: '',
+                plugin_output: element.hard_state + 4,
+                created_at: timestamp,
+                date: '',
+                time: '',
+                customer_site_id: element.customer_site_id,
+                host_group_id: element.host_id
+            };
+            results.push(myObject);
+        });
+
+        let records = results.sort(predicate('created_at'));
+        let startFrom = records.length;
+        //console.log(records);
+        let response = [];
+
+        //if(startFrom > 32)
+        for(let i = startFrom - 1; i > 0; i--) {
+            let check_change = new Date(records[i].created_at);
+            let check_year = check_change.getFullYear();
+            //let check_month = check_change.getMonth() + 1;
+            //check_month = (check_month <= 9) ? "0" + check_month : check_month;
+            let check_day = check_change.getDate();
+            check_day = (check_day <= 9) ? "0" + check_day : check_day;
+            let check_hours = "0" + check_change.getHours();
+            let check_minutes = "0" + check_change.getMinutes();
+            let check_seconds = "0" + check_change.getSeconds();
+
+            let months = [
+                'Gen',
+                'Feb',
+                'Mar',
+                'Apr',
+                'Mag',
+                'Giu',
+                'Lug',
+                'Ago',
+                'Set',
+                'Ott',
+                'Nov',
+                'Dic'
+            ]
+
+            let check_formattedTime = check_day + ' ' + months[check_change.getMonth()] + '.';
+            let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2);
+            records[i].created_at = check_formattedTime + ' ' + check_formattedTime_ex;
+
+            records[i].date = check_formattedTime;
+            records[i].time = check_formattedTime_ex;
+
+            response.push(records[i]);
+        }
+        
+        res.status(200).json(response);
+    },
+    getSiteServicesChange: async (req, res, next) => {
+        const { siteId } = req.value.params;    
+        
+        let results = [];
+        const services_last_log = await ServiceCompleteInfo.find(
+        {                
+            customer_site_id: siteId,
+            previous_state: { $ne: null },
+            service_state: { $ne: 0 } 
+        }).sort({ created_at: -1 }).limit(30);
+
+        await asyncForEach(services_last_log, async (element) => {        
+            const service_ack = await ServiceAck.findOne({ service_id: element.service_id, expired: 0 });            
+            if(!service_ack) {              
+                let split = element.created_at.split(" ");
+                let date = split[0].split('-');
+                let time = split[1].split(':') ;
+                let timestamp = new Date(date[0], date[1] - 1, date[2], time[0], time[1], time[2]).getTime();     
+
+                let new_customer_name = element.customer_logs_docs.name;
+                if(new_customer_name.length > 30) {
+                    new_customer_name = element.customer_logs_docs.name.substring(0, 30 - 2);
+                    new_customer_name = new_customer_name + "..";
+                }
+
+                let new_host_alias = element.host_logs_docs.host_alias;
+                
+                if(new_host_alias.length > 30) {
+                    new_host_alias = element.host_logs_docs.host_alias.substring(0, 30 - 2);
+                    new_host_alias = new_host_alias + "..";
+                }
+
+                let new_service_name = element.service_logs_docs.name;
+                if(new_service_name.length > 30) {
+                    new_service_name = element.service_logs_docs.name.substring(0, 30 - 2);
+                    new_service_name = new_service_name + "..";
+                }
+
+                let myObject = {                    
+                    customer_name: new_customer_name,
+                    customer_site_description: element.customer_site_logs_docs.description,
+                    host_alias: new_host_alias,
+                    service_name: new_service_name,
+                    plugin_output: element.service_state,
+                    created_at: timestamp,
+                    date: '',
+                    time: '',
+                    customer_site_id: element.customer_site_id,
+                    host_group_id: element.host_id
+                };
+                results.push(myObject);
+            }        
+        });   
+
+        const hosts_last_log = await HostCompleteInfo.find(
+        { 
+            hard_state: 1,
+            customer_site_id: siteId,
+        }).sort({ created_at: -1 }).limit(30);
         //console.log(hosts_last_log);
         await asyncForEach(hosts_last_log, async (element) => {
             let split = element.created_at.split(" ");
