@@ -20,6 +20,7 @@ const services = require('./routes/services');
 const scheduler_infos = require('./routes/scheduler_infos');
 const host_groups = require('./routes/host_groups');
 const customer_sites = require('./routes/customer_sites');
+const services_logs = require('./routes/services_logs');
 
 // Middlewares 
 app.use(logger('dev'));
@@ -33,6 +34,7 @@ app.use('/services', services);
 app.use('/scheduler_infos', scheduler_infos);
 app.use('/hostgroups', host_groups);
 app.use('/customer_sites', customer_sites);
+app.use('/services_logs', services_logs);
 
 // Catch 404 Errors and forward them to error handler
 app.use((req, res, next) => {

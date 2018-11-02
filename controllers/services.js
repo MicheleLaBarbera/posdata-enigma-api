@@ -502,6 +502,10 @@ module.exports = {
         
         res.status(200).json(response);
     },
+    getServicesLastLogs: async (req, res, next) => {
+        const services_last_logs = await ServiceLastLog.find({});
+        res.status(200).json(services_last_logs);
+    },
     getSiteServicesChange: async (req, res, next) => {
         const { siteId } = req.value.params;    
         

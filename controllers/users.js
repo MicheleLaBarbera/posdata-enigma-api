@@ -318,7 +318,10 @@ module.exports = {
                     'services_unknown': 0,
                     'services_warn': 0,                   
                     'groups': hostGroups,
-                    'check_state': 0             
+                    'check_state': 0,
+                    'referent_name': customer.referent_name,
+                    'referent_mail': customer.email,
+                    'referent_phone': customer.phone_number     
                 }
                 hostGroups.forEach(element => {
                     customerSiteObject.hosts_down += element.num_hosts_down;
