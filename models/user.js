@@ -11,7 +11,8 @@ const UserSchema = new Schema({
     telegram_id: String,
     customer_name: String,
     reset_password_token: String,
-  	reset_password_expires: Date
+  	reset_password_expires: Date,
+    deleted: Number
 });
 
 const User = mongoose.model('users', UserSchema);

@@ -39,7 +39,7 @@ function sortByKey(array, key) {
 
 module.exports = {
     index: async (req, res, next) => {          
-        const users = await User.find({});
+        const users = await User.find().where('deleted').ne(1);
         await asyncForEach(users, async (element) => {
             const customerUser = await CustomerUser.findOne( { user_id: element._id } );
             if(customerUser) {
@@ -94,9 +94,27 @@ module.exports = {
             }        
         });   
     },
+    deleteUser: async (req, res, next) => {
+        const { userId } = req.value.params;
+
+        const user = await User.findById(userId);   
+        if(user) {
+            user.username = '@deleted@' + user.username;
+            user.deleted = 1;
+            await user.save();
+
+
+            res.status(200).json({ 
+                'status': 200,
+                'body': {
+                    'success': true
+                } 
+            });   
+        }        
+    },
     auth: async (req, res, next) => {    
         const user = await User.findOne( { username: req.value.body.username } );
-        if(user) {
+        if(user && !user.deleted) {
             const match = await bcrypt.compare(req.value.body.password, user.password);
     
             if(match) {
