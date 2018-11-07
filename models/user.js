@@ -12,7 +12,10 @@ const UserSchema = new Schema({
     customer_name: String,
     reset_password_token: String,
   	reset_password_expires: Date,
-    deleted: Number
+    deleted: Number,
+    customer_id: String,
+    phone_number: String,
+    office_number: String
 });
 
 const User = mongoose.model('users', UserSchema);

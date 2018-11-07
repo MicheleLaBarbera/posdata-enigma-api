@@ -57,7 +57,9 @@ module.exports = {
             lastname: Joi.string().required(),
             email: Joi.string().email().required(),
             role: Joi.number().required(),
-            telegram_id: Joi.string().required()
+            telegram_id: Joi.string(),
+            phone_number: Joi.string(),
+            office_number: Joi.string(),
         }),
         authSchema: Joi.object().keys({
             username: Joi.string().required(),
@@ -81,6 +83,17 @@ module.exports = {
             phone_number: Joi.string().regex(/^[0-9]/),
             email: Joi.string().email(),
             logo: Joi.string()
+        }),
+        patchUserSchema: Joi.object().keys({
+            customer_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/),
+            username: Joi.string(),
+            firstname: Joi.string(),
+            lastname: Joi.string(),
+            email: Joi.string().email(),
+            role: Joi.number(),
+            telegram_id: Joi.string(),
+            phone_number: Joi.string(),
+            office_number: Joi.string(),
         }),
         patchAckSchema: Joi.object().keys({
             user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),

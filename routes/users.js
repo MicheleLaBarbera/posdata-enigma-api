@@ -38,6 +38,7 @@ router.route('/:userId/sites/:siteId')
     .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateParam(schemas.idSchema, 'siteId'), UsersController.deleteUserCustomerSite);
 
 router.route('/:userId')
-    .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), UsersController.deleteUser);
+    .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), UsersController.deleteUser)
+    .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateBody(schemas.patchUserSchema), UsersController.replaceUser);
 
 module.exports = router;

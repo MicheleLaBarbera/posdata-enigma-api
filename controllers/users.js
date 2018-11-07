@@ -46,13 +46,16 @@ module.exports = {
                 const customer = await Customer.findById(customerUser.customer_id);
                 if(customer) {
                     element.customer_name = customer.name;
+                    element.customer_id = customer._id;
                 }
                 else {
                     element.customer_name = 'undefined';
+                    element.customer_id = 'undefined';
                 }
             }
             else {
                 element.customer_name = 'undefined';
+                element.customer_id = 'undefined';
             }
         });          
         res.status(200).json(users);      
@@ -94,6 +97,22 @@ module.exports = {
             }        
         });   
     },
+    replaceUser: async (req, res, next) => {
+        const { userId } = req.value.params;
+        const newUser = req.value.body;
+
+        const result = await User.findByIdAndUpdate(userId, newUser);
+
+        console.log(newUser);
+        console.log(result)
+    
+        res.status(200).json({ 
+            'status': 200,
+            'body': {
+                'success': true
+            } 
+        });
+    },
     deleteUser: async (req, res, next) => {
         const { userId } = req.value.params;
 
@@ -126,7 +145,10 @@ module.exports = {
                         'lastname': user.lastname,
                         'role': user.role,
                         'email': user.email,                        
-                        'id': user._id
+                        'id': user._id,
+                        'telegram_id': user.telegram_id,
+                        'phone_number': user.phone_number,
+                        'office_number': user.office_number
                     },
                     maxAge: age
                 });
