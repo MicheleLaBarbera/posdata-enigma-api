@@ -84,9 +84,7 @@ module.exports = {
                 sites.push(customerSiteObject);
             });
             if(sites) {
-                //console.log(sites);                 
                 const user_site = await UserCustomerSite.insertMany(sites);
-                //console.log(user_site);  
             }
         }
 
@@ -102,9 +100,6 @@ module.exports = {
         const newUser = req.value.body;
 
         const result = await User.findByIdAndUpdate(userId, newUser);
-
-        console.log(newUser);
-        console.log(result)
     
         res.status(200).json({ 
             'status': 200,
@@ -130,6 +125,79 @@ module.exports = {
                 } 
             });   
         }        
+    },
+    replaceUserProfile: async (req, res, next) => {
+        const { userId } = req.value.params;
+        const newUser = req.value.body;
+
+        const result = await User.findByIdAndUpdate(userId, newUser);
+
+        let age = 604800;
+
+        const token = CreateJWToken({
+            sessionData: {
+                'firstname': result.firstname,
+                'lastname': result.lastname,
+                'role': result.role,
+                'email': result.email,                        
+                'id': result._id,
+                'telegram_id': result.telegram_id,
+                'phone_number': result.phone_number,
+                'office_number': result.office_number
+            },
+            maxAge: age
+        });
+
+        res.status(200).json({
+            'status': 200,
+            'body': {
+                'token': token                    
+            }
+        });        
+    },
+    changePasswordProfile: async (req, res, next) => {
+        const { userId } = req.value.params;
+
+        const user = await User.findById(userId);
+
+        if(user && !user.deleted) {
+            const match = await bcrypt.compare(req.value.body.current_password, user.password);
+    
+            if(match) {
+                user.password = await bcrypt.hash(req.value.body.confirm_password, saltRounds);                    
+                const user_saved = await user.save();
+
+                res.status(200).json({ 
+                    'status': 200,
+                    'body': {
+                        'success': true
+                    } 
+                });
+            }
+            else {
+                res.status(201).json("")
+            }
+        }
+    },
+    updatePassword: async (req, res, next) => {
+        const { token } = req.value.params;
+        let user = await User.findOne({ reset_password_token: token });
+        if(!user) {
+           res.status(201).json("Token inesistente.");
+        }
+        else {
+            user.password = await bcrypt.hash(req.value.body.confirm_password, saltRounds); 
+            user.reset_password_token = '';
+            user.reset_password_expires = '';   
+            const user_saved = await user.save();
+
+            res.status(200).json({ 
+                'status': 200,
+                'body': {
+                    'success': true
+                } 
+            });        
+        }
     },
     auth: async (req, res, next) => {    
         const user = await User.findOne( { username: req.value.body.username } );
@@ -588,7 +656,7 @@ module.exports = {
                 to: user.email,
                 subject: 'Enigma - Richiesta ripristino password',
                 html: '<p>La tua password può essere ripristinata cliccando il link qui sotto:</p>' + 
-                      "<a href='http://localhost:4200/reset/" + token + "'>Ripristina Password</a>" +
+                      "<a href='http://enigma.posdata.it:8085/reset/" + token + "'>Ripristina Password</a>" +
                       '<p>Se non hai richiesto una nuova password, puoi ignorare questa email.</p>'                     
             };
 

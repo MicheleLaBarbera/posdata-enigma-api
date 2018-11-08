@@ -32,7 +32,8 @@ router.route('/recover')
     .post(validateBody(schemas.recoverPasswordSchema), UsersController.recoverPassword);
 
 router.route('/recover/:token')
-    .get(validateParam(schemas.recoverToken, 'token'), UsersController.checkRecoverToken);
+    .get(validateParam(schemas.recoverToken, 'token'), UsersController.checkRecoverToken)
+    .post(validateParam(schemas.recoverToken, 'token'), validateBody(schemas.updatePasswordSchema), UsersController.updatePassword);
 
 router.route('/:userId/sites/:siteId')
     .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateParam(schemas.idSchema, 'siteId'), UsersController.deleteUserCustomerSite);
@@ -40,5 +41,11 @@ router.route('/:userId/sites/:siteId')
 router.route('/:userId')
     .delete(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), UsersController.deleteUser)
     .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateBody(schemas.patchUserSchema), UsersController.replaceUser);
+
+router.route('/:userId/profile')
+    .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateBody(schemas.patchUserSchema), UsersController.replaceUserProfile);
+
+router.route('/:userId/password')
+    .patch(verifyJWT_MW, validateParam(schemas.idSchema, 'userId'), validateBody(schemas.patchPasswordProfileSchema), UsersController.changePasswordProfile);
 
 module.exports = router;

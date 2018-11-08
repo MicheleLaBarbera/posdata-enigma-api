@@ -66,6 +66,15 @@ module.exports = {
             password: Joi.string().required(),
             remember: Joi.number().required()
         }),
+        patchPasswordProfileSchema: Joi.object().keys({
+            current_password: Joi.string().required(),
+            new_password: Joi.string().required(),
+            confirm_password: Joi.string().required()
+        }),
+        updatePasswordSchema: Joi.object().keys({           
+            password: Joi.string().required(),
+            confirm_password: Joi.string().required()
+        }),
         customerSchema: Joi.object().keys({
             name: Joi.string().required(),            
             //address: Joi.string().required(),
