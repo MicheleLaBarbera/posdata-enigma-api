@@ -79,7 +79,7 @@ function predicate() {
 module.exports = {    
     getHostgroupHosts: async (req, res, next) => {
         const { hostGroupId } = req.value.params;
-        const hosts = await Host.find({ host_group_id: hostGroupId});
+        const hosts = await Host.find({ host_group_id: hostGroupId, visisble: 1});
         let results = [];
         const service_acks = await ServiceAck.find({ expired: 0 });
         await asyncForEach(hosts, async (element) => {
