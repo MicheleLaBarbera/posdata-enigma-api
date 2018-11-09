@@ -57,9 +57,9 @@ module.exports = {
             lastname: Joi.string().required(),
             email: Joi.string().email().required(),
             role: Joi.number().required(),
-            telegram_id: Joi.string(),
-            phone_number: Joi.string(),
-            office_number: Joi.string(),
+            telegram_id: Joi.string().allow(''),
+            phone_number: Joi.string().allow(''),
+            office_number: Joi.string().allow(''),
         }),
         authSchema: Joi.object().keys({
             username: Joi.string().required(),

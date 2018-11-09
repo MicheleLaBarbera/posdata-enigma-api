@@ -247,6 +247,13 @@ module.exports = {
         }
     },
     getUserCustomerSitesHostgroups: async (req, res, next) => {
+        /*return res.status(404).json({
+            'status': 404,
+            'body': {
+                'message': 'Test errore 404'
+            }
+        });*/
+
         const { userId } = req.value.params;
         const userCustomerSites = await UserCustomerSite.find({ user_id: userId});
         var sites = [];

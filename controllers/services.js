@@ -293,6 +293,7 @@ module.exports = {
                                         author: '',
                                         _id: '',
                                         service_id: '',
+                                        state: element.service_state
                                     };
                                     results.push(myObject);
                                 }
@@ -309,7 +310,8 @@ module.exports = {
                                     author: '',
                                     _id: '',
                                     service_id: '',
-                                    code: ''
+                                    code: '',
+                                    state: element.service_state
                                 };
                                 results.push(myObject);
                             }
@@ -333,20 +335,24 @@ module.exports = {
                                     if(customer) {
                                         let user = await User.findById(element.user_id);
                                         if(user) {
-                                            let myObject = {
-                                                customer_name: customer.name,
-                                                customer_site_description: customer_site.description,
-                                                host_alias: host.host_alias,
-                                                service_name: service.name,
-                                                plugin_output: element.message,
-                                                created_at: element.created_at,
-                                                updated_at: element.updated_at,
-                                                author: user.firstname + ' ' + user.lastname,
-                                                _id: element._id,
-                                                service_id: service._id,
-                                                code: element.code
-                                            };
-                                            results.push(myObject);
+                                            let service_log = await ServiceLastLog.findOne({ service_id: service._id });
+                                            if(service_log) {
+                                                let myObject = {
+                                                    customer_name: customer.name,
+                                                    customer_site_description: customer_site.description,
+                                                    host_alias: host.host_alias,
+                                                    service_name: service.name,
+                                                    plugin_output: element.message,
+                                                    created_at: element.created_at,
+                                                    updated_at: element.updated_at,
+                                                    author: user.firstname + ' ' + user.lastname,
+                                                    _id: element._id,
+                                                    service_id: service._id,
+                                                    code: element.code,
+                                                    state: service_log.service_state
+                                                };
+                                                results.push(myObject);
+                                            }
                                         }
                                     }
                                 }
@@ -356,7 +362,8 @@ module.exports = {
                 });                  
             }
         }  
-        res.status(200).json(results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name')));
+        let response_ex = results.sort(predicate('customer_name', 'customer_site_description', 'host_alias', 'service_name'));
+        res.status(200).json(response_ex);
     },    
     getServicesChange: async (req, res, next) => {
         const { userId } = req.value.params;    
