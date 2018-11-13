@@ -335,7 +335,7 @@ module.exports = {
                                     if(customer) {
                                         let user = await User.findById(element.user_id);
                                         if(user) {
-                                            let service_log = await ServiceLastLog.findOne({ service_id: service._id });
+                                            let service_log = await ServiceLastLog.findOne({ service_id: element.service_id });
                                             if(service_log) {
                                                 let myObject = {
                                                     customer_name: customer.name,
@@ -351,7 +351,7 @@ module.exports = {
                                                     code: element.code,
                                                     state: service_log.service_state
                                                 };
-                                                results.push(myObject);
+                                                results.push(myObject);                                                
                                             }
                                         }
                                     }
