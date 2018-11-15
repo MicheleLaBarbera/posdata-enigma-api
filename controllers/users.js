@@ -250,11 +250,13 @@ module.exports = {
         const { userId } = req.value.params;
         const userCustomerSites = await UserCustomerSite.find({ user_id: userId });
 
+        const user = await User.findById(userId);
+
         if(!userCustomerSites.length)
             return res.status(404).json({
                         'status': 404,
                         'body': {
-                            'message': "Impossibile visualizzare la Homepage. Nessun sito associato."
+                            'message': "All'utente " + user.firstname + " " + user.lastname + " non è associato nessun sito. Si prega di contattare l'amministratore."
                         }
                     });
   
