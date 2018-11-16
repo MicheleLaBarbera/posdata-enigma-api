@@ -422,23 +422,14 @@ module.exports = {
         const userId = req.value.params.userId;
         const siteId = req.value.params.siteId;
 
-        const userCustomerSite = await UserCustomerSite.find({ user_id: userId, customer_site_id: siteId});
-        if(!userCustomerSite.length) 
+        const userCustomerSite = await UserCustomerSite.findOne({ user_id: userId, customer_site_id: siteId});
+        if(!userCustomerSite) 
             return res.status(403).json({
                         'status': 403,
                         'body': {
                             'message': "Non hai i permessi per visualizzare questa pagina."
                         }
                     });
-
-        if(userCustomerSite.length == 0) {
-            res.status(403).json({
-                'status': 403,
-                'body': {
-                    'message': 'Non hai i permessi per visualizzare questa pagina.'
-                }
-            });
-        } 
 
         const customerSite = await CustomerSite.findById(siteId);
         if(!customerSite)       
@@ -478,7 +469,9 @@ module.exports = {
             'check_state': 0,
             'referent_name': customer.referent_name,
             'referent_mail': customer.email,
-            'referent_phone': customer.phone_number     
+            'referent_phone': customer.phone_number,     
+            'notification': userCustomerSite.notification,
+            'user_customer_site_id': userCustomerSite._id
         }
         hostGroups.forEach(element => {
             customerSiteObject.hosts_down += element.num_hosts_down;

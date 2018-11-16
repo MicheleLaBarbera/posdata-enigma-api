@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const UserCustomerSiteSchema = new Schema({
-
+		_id: Schema.Types.ObjectId,
     user_id: Schema.Types.ObjectId,
     customer_site_id: Schema.Types.ObjectId,
     notification: Number,

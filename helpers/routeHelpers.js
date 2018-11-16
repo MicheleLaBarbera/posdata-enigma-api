@@ -71,6 +71,10 @@ module.exports = {
             new_password: Joi.string().required(),
             confirm_password: Joi.string().required()
         }),
+        patchUserCustomerSiteSchema: Joi.object().keys({
+            notification: Joi.number().required(),
+            telegram: Joi.number().required()
+        }),
         updatePasswordSchema: Joi.object().keys({           
             password: Joi.string().required(),
             confirm_password: Joi.string().required()
