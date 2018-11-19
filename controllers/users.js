@@ -16,6 +16,9 @@ const crypto = require("crypto");
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
 
+const mongoose = require('mongoose');
+
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -28,13 +31,6 @@ async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
         await callback(array[index], index, array)
     }
-}
-
-function sortByKey(array, key) {
-    return array.sort(function(a, b) {
-        var x = a[key]; var y = b[key];
-        return ((x < y) ? -1 : ((x > y) ? 1 : 0));
-    });
 }
 
 module.exports = {
@@ -58,7 +54,7 @@ module.exports = {
                 element.customer_id = 'undefined';
             }
         });          
-        res.status(200).json(users);      
+        res.status(200).json(users.sort(predicate('customer_name', 'firstname', 'lastname', 'username')));      
     },
     newUser: async (req, res, next) => {
         const newUser = new User(req.value.body);        
@@ -608,14 +604,24 @@ module.exports = {
                 }
             }
         });
-        res.status(200).json(sites);
+        res.status(200).json(sites.sort(predicate('customer_name')));        
     },
     newUserSite: async (req, res, next) => {   
         const checkSite = await UserCustomerSite.findOne({user_id: req.value.body.user_id, customer_site_id: req.value.body.customer_site_id});
 
         if(!checkSite) {
         
-            const newUserSite = new UserCustomerSite(req.value.body);           
+            let newObject = {
+                "_id": mongoose.Types.ObjectId(),
+                "user_id": req.value.body.user_id,
+                "customer_site_id": req.value.body.customer_site_id,
+                "notification": req.value.body.notification,
+                "telegram": req.value.body.telegram,
+                "email": req.value.body.email,
+                "sms": req.value.body.sms,
+            }
+ 
+            const newUserSite = new UserCustomerSite(newObject);           
             const user_site = await newUserSite.save();
         
             res.status(201).json({
