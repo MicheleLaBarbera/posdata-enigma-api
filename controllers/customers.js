@@ -19,6 +19,35 @@ async function asyncForEach(array, callback) {
     }
 }
 
+async function insertLog(user_id, action_type, message, receiver_id) {   
+    let d = new Date();
+    let check_year = d.getFullYear();
+    let check_month;
+    check_month = d.getMonth() + 1;
+    check_month = (check_month <= 9) ? "0" + check_month : check_month;
+    let check_day;
+    check_day = d.getDate();
+    check_day = (check_day <= 9) ? "0" + check_day : check_day;
+    let check_hours = "0" + d.getHours();
+    let check_minutes = "0" + d.getMinutes();
+    let check_seconds = "0" + d.getSeconds();
+    let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
+    let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+    
+    let final = check_formattedTime + ' ' + check_formattedTime_ex;
+
+    let newUserLog = new UserLog({
+        'user_id': user_id,
+        'action_type': action_type,
+        'message': message,
+        'created_at': final,
+        'receiver_id': receiver_id
+    });
+    
+    const userLog = await newUserLog.save();
+}
+
+
 function predicate() {
     var fields = [], n_fields = arguments.length, field, name, reverse, cmp;
 
@@ -87,31 +116,10 @@ module.exports = {
         
         verifyJWT(token).then(decodedToken => {
             req.user = decodedToken.data;
+            let user_id = req.user.id;
 
-            let d = new Date();
-            let check_year = d.getFullYear();
-            let check_month;
-            check_month = d.getMonth() + 1;
-            check_month = (check_month <= 9) ? "0" + check_month : check_month;
-            let check_day;
-            check_day = d.getDate();
-            check_day = (check_day <= 9) ? "0" + check_day : check_day;
-            let check_hours = "0" + d.getHours();
-            let check_minutes = "0" + d.getMinutes();
-            let check_seconds = "0" + d.getSeconds();
-            let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
-            let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+            insertLog(user_id, 0, 'Nome: ' + customer.name + ' - Codice: ' + customer.customer_code, customer._id);
             
-            let final = check_formattedTime + ' ' + check_formattedTime_ex;
-
-            let newUserLog = new UserLog({
-                'user_id': req.user.id,
-                'action_type': 0,
-                'message': 'Creazione cliente | Nome: ' + customer.name + ' - Codice Cliente: ' + customer.customer_code,
-                'created_at': final
-            });
-            
-            const userLog = newUserLog.save();
             res.status(201).json({
                 'status': 201,
                 'body': {
@@ -146,7 +154,7 @@ module.exports = {
         const newCustomerSite = new CustomerSite(req.value.body);           
         const customerSite = await newCustomerSite.save();
 
-        let token = req.get('Authorization');
+        /*let token = req.get('Authorization');
         
         verifyJWT(token).then(decodedToken => {
             
@@ -175,7 +183,7 @@ module.exports = {
             'state': 0
         });
       
-        const customerSiteLastLog = await newCustomerSiteLastLog.save();    
+        const customerSiteLastLog = await newCustomerSiteLastLog.save();    */
 
        
         const users = await User.find({ role: { $gt: 0 }});
@@ -221,31 +229,10 @@ module.exports = {
             
             verifyJWT(token).then(decodedToken => {
                 req.user = decodedToken.data;
-    
-                let d = new Date();
-                let check_year = d.getFullYear();
-                let check_month;
-                check_month = d.getMonth() + 1;
-                check_month = (check_month <= 9) ? "0" + check_month : check_month;
-                let check_day;
-                check_day = d.getDate();
-                check_day = (check_day <= 9) ? "0" + check_day : check_day;
-                let check_hours = "0" + d.getHours();
-                let check_minutes = "0" + d.getMinutes();
-                let check_seconds = "0" + d.getSeconds();
-                let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
-                let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+                let user_id = req.user.id;
+
+                insertLog(user_id, 1, 'Nome: ' + customer_ex.name + ' - Codice: ' + customer_ex.customer_code, customer_ex._id);
                 
-                let final = check_formattedTime + ' ' + check_formattedTime_ex;
-    
-                let newUserLog = new UserLog({
-                    'user_id': req.user.id,
-                    'action_type': 2,
-                    'message': 'Eliminazione cliente | Nome: ' + customer_ex.name + ' - Indirizzo: ' + customer_ex.address + ' - Partita IVA: ' + customer_ex.vat_number,
-                    'created_at': final
-                });
-    
-                const userLog = newUserLog.save();
                 res.status(200).json({ 
                     'status': 200,
                     'body': {
@@ -330,13 +317,38 @@ module.exports = {
         const newCustomer = req.value.body;
 
         const result = await Customer.findByIdAndUpdate(customerId, newCustomer);
+
+        let token = req.get('Authorization');
+        
+        verifyJWT(token).then(decodedToken => {
+            req.user = decodedToken.data;
+            let user_id = req.user.id;
+
+            if(newCustomer.name != result.name)
+                insertLog(user_id, 2, 'Campo: Ragione Sociale - Vecchio valore: ' + result.name + ' - Nuovo valore: ' + newCustomer.name, result._id);
+
+            if(newCustomer.customer_code != result.customer_code)
+                insertLog(user_id, 2, 'Campo: Codice Cliente - Vecchio valore: ' + result.customer_code + ' - Nuovo valore: ' + newCustomer.customer_code, result._id);
     
-        res.status(200).json({ 
-            'status': 200,
-            'body': {
-                'success': true
-            } 
-        });
+            if(newCustomer.referent_name != result.referent_name)
+                insertLog(user_id, 2, 'Campo: Referente - Vecchio valore: ' + result.referent_name + ' - Nuovo valore: ' + newCustomer.referent_name, result._id);
+    
+            if(newCustomer.phone_number != result.phone_number)
+                insertLog(user_id, 2, 'Campo: Telefono - Vecchio valore: ' + result.phone_number + ' - Nuovo valore: ' + newCustomer.phone_number, result._id);
+    
+            if(newCustomer.email != result.email)
+                insertLog(user_id, 2, 'Campo: E-Mail - Vecchio valore: ' + result.email + ' - Nuovo valore: ' + newCustomer.email, result._id);
+
+            if(newCustomer.logo != result.logo)
+                insertLog(user_id, 2, 'Campo: Logo', result._id);
+
+            res.status(200).json({ 
+                'status': 200,
+                'body': {
+                    'success': true
+                } 
+            });
+        });        
     },
     getCustomerSiteHosts: async (req, res, next) => {
         const { customerSiteId } = req.value.params;

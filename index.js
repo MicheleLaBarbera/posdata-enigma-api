@@ -23,6 +23,7 @@ const host_groups = require('./routes/host_groups');
 const customer_sites = require('./routes/customer_sites');
 const services_logs = require('./routes/services_logs');
 const user_customer_sites = require('./routes/user_customer_sites');
+const user_logs = require('./routes/user_logs');
 
 // Middlewares 
 app.use(logger('dev'));
@@ -38,6 +39,7 @@ app.use('/hostgroups', host_groups);
 app.use('/customer_sites', customer_sites);
 app.use('/services_logs', services_logs);
 app.use('/user_customer_sites', user_customer_sites);
+app.use('/user_logs', user_logs);
 
 // Catch 404 Errors and forward them to error handler
 app.use((req, res, next) => {

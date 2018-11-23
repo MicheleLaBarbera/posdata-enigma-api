@@ -104,9 +104,9 @@ module.exports = {
             lastname: Joi.string(),
             email: Joi.string().email(),
             role: Joi.number(),
-            telegram_id: Joi.string(),
-            phone_number: Joi.string(),
-            office_number: Joi.string(),
+            telegram_id: Joi.string().allow(''),
+            phone_number: Joi.string().allow(''),
+            office_number: Joi.string().allow(''),
         }),
         patchAckSchema: Joi.object().keys({
             user_id: Joi.string().regex(/^[0-9a-fA-F]{24}$/).required(),
