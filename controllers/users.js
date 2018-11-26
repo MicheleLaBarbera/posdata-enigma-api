@@ -451,13 +451,19 @@ module.exports = {
                         }
                     });
 
+        const customerSiteNumber = await CustomerSite.find({ customer_id: customerSite.customer_id });
+
+        let description = '';
+        if(customerSiteNumber.length > 1)
+            description = customerSite.description;
+
         const hostGroups = await HostGroup.aggregate([ { $sort: { alias: 1 } }, { $match: { customer_site_id: customerSite._id } } ]);
         let customerSiteObject = {                
             '_id': customerSite._id,
             'name': customer.name,
             'ip': customerSite.ip_address,
             'port': customerSite.port_number,
-            'description': customerSite.description,          
+            'description': description,          
             'hosts_down': 0,
             'hosts_pending': 0,
             'hosts_unreachable': 0,
