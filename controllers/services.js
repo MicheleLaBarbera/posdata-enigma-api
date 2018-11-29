@@ -241,7 +241,7 @@ module.exports = {
     patchServiceAck: async (req, res, next) => {
         const { ackId } = req.value.params;
         const newAck = req.value.body;
-
+  
         const result = await ServiceAck.findByIdAndUpdate(ackId, newAck);
 
         const updatedACK = await ServiceAck.findById(ackId);

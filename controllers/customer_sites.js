@@ -12,6 +12,8 @@ const HostCompleteInfo = require('../models/host_complete_info');
 const Service = require('../models/service');
 const User = require('../models/user');
 const HostLastLog = require('../models/host_last_log');
+let { verifyJWT } = require('../helpers/auth');
+const UserLog = require('../models/user_log');
 
 async function asyncForEach(array, callback) {
     for (let index = 0; index < array.length; index++) {
@@ -85,12 +87,28 @@ module.exports = {
         const newCustomerSite = req.value.body;
 
         const result = await CustomerSite.findByIdAndUpdate(siteId, newCustomerSite);
-    
-        res.status(200).json({ 
-            'status': 200,
-            'body': {
-                'success': true
-            } 
+
+        let token = req.get('Authorization');
+        
+        verifyJWT(token).then(decodedToken => {
+            req.user = decodedToken.data;
+            let user_id = req.user.id;
+     
+            if(newCustomerSite.description != result.description)
+                insertLog(user_id, 5, 'Campo: Descrizione - Vecchio valore: ' + result.description + ' - Nuovo valore: ' + newCustomerSite.description, result._id);
+
+            if(newCustomerSite.ip_address != result.ip_address)
+                insertLog(user_id, 5, 'Campo: Indirizzo IP - Vecchio valore: ' + result.ip_address + ' - Nuovo valore: ' + newCustomerSite.ip_address, result._id);
+
+            if(newCustomerSite.port_number != result.port_number)
+                insertLog(user_id, 5, 'Campo: Porta - Vecchio valore: ' + result.port_number + ' - Nuovo valore: ' + newCustomerSite.port_number, result._id);
+        
+            res.status(200).json({ 
+                'status': 200,
+                'body': {
+                    'success': true
+                } 
+            });
         });
     },
     getCustomerSiteServicesByState: async (req, res, next) => {
@@ -266,3 +284,31 @@ module.exports = {
         res.status(200).json(results.sort(predicate('name', 'site', 'alias')));
     },    
 };
+
+async function insertLog(user_id, action_type, message, receiver_id) {   
+    let d = new Date();
+    let check_year = d.getFullYear();
+    let check_month;
+    check_month = d.getMonth() + 1;
+    check_month = (check_month <= 9) ? "0" + check_month : check_month;
+    let check_day;
+    check_day = d.getDate();
+    check_day = (check_day <= 9) ? "0" + check_day : check_day;
+    let check_hours = "0" + d.getHours();
+    let check_minutes = "0" + d.getMinutes();
+    let check_seconds = "0" + d.getSeconds();
+    let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
+    let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+    
+    let final = check_formattedTime + ' ' + check_formattedTime_ex;
+
+    let newUserLog = new UserLog({
+        'user_id': user_id,
+        'action_type': action_type,
+        'message': message,
+        'created_at': final,
+        'receiver_id': receiver_id
+    });
+    
+    const userLog = await newUserLog.save();
+}

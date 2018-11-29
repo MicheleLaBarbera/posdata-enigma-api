@@ -18,6 +18,8 @@ const saltRounds = 10;
 
 const mongoose = require('mongoose');
 
+const UserLog = require('../models/user_log');
+let { verifyJWT } = require('../helpers/auth');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -221,6 +223,8 @@ module.exports = {
                 if(customerUser) {
                     const customer = await Customer.findById(customerUser.customer_id);   
             
+                    insertLog(user._id, 11, (req.value.body.remember) ? 'Ricordami: Attivato' : 'Ricordami: Disattivato', user._id);
+
                     res.status(200).json({
                         'status': 200,
                         'body': {
@@ -819,4 +823,32 @@ function predicate() {
         }
         return result;
     };
+}
+
+async function insertLog(user_id, action_type, message, receiver_id) {   
+    let d = new Date();
+    let check_year = d.getFullYear();
+    let check_month;
+    check_month = d.getMonth() + 1;
+    check_month = (check_month <= 9) ? "0" + check_month : check_month;
+    let check_day;
+    check_day = d.getDate();
+    check_day = (check_day <= 9) ? "0" + check_day : check_day;
+    let check_hours = "0" + d.getHours();
+    let check_minutes = "0" + d.getMinutes();
+    let check_seconds = "0" + d.getSeconds();
+    let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
+    let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
+    
+    let final = check_formattedTime + ' ' + check_formattedTime_ex;
+
+    let newUserLog = new UserLog({
+        'user_id': user_id,
+        'action_type': action_type,
+        'message': message,
+        'created_at': final,
+        'receiver_id': receiver_id
+    });
+    
+    const userLog = await newUserLog.save();
 }

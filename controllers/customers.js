@@ -154,20 +154,14 @@ module.exports = {
         const newCustomerSite = new CustomerSite(req.value.body);           
         const customerSite = await newCustomerSite.save();
 
-        /*let token = req.get('Authorization');
+        let token = req.get('Authorization');
         
         verifyJWT(token).then(decodedToken => {
             
             req.user = decodedToken.data;
-            
-            let newUserLog = new UserLog({
-                'user_id': req.user.id,
-                'action_type': 1,
-                'message': 'Creazione sito | Nome: ' + req.value.body.description + ' - IP: ' + req.value.body.ip_address + ' - Porta: ' + req.value.body.port_number,
-                'created_at': final
-            });
-            const userLog = newUserLog.save();
+            let user_id = req.user.id;
 
+            insertLog(user_id, 3, 'Nome: ' + req.value.body.description + ' - IP: ' + req.value.body.ip_address + ' - Porta: ' + req.value.body.port_number, customerSite._id);
         });       
         let newCustomerSiteLog = new CustomerSiteLog({
             'customer_site_id': customerSite._id,                
@@ -183,7 +177,7 @@ module.exports = {
             'state': 0
         });
       
-        const customerSiteLastLog = await newCustomerSiteLastLog.save();    */
+        const customerSiteLastLog = await newCustomerSiteLastLog.save();   
 
        
         const users = await User.find({ role: { $gt: 0 }});
@@ -261,31 +255,10 @@ module.exports = {
         
         verifyJWT(token).then(decodedToken => {
             req.user = decodedToken.data;
+            let user_id = req.user.id;
 
-            let d = new Date();
-            let check_year = d.getFullYear();
-            let check_month;
-            check_month = d.getMonth() + 1;
-            check_month = (check_month <= 9) ? "0" + check_month : check_month;
-            let check_day;
-            check_day = d.getDate();
-            check_day = (check_day <= 9) ? "0" + check_day : check_day;
-            let check_hours = "0" + d.getHours();
-            let check_minutes = "0" + d.getMinutes();
-            let check_seconds = "0" + d.getSeconds();
-            let check_formattedTime = check_year + '-' + check_day + '-' + check_month;
-            let check_formattedTime_ex = check_hours.substr(-2) + ':' + check_minutes.substr(-2) + ':' + check_seconds.substr(-2);
-            
-            let final = check_formattedTime + ' ' + check_formattedTime_ex;
+            insertLog(user_id, 4, 'Nome: ' + customer_site_ex.description + ' - IP: ' + customer_site_ex.ip_address + ' - Porta: ' + customer_site_ex.port_number, siteId);
 
-            let newUserLog = new UserLog({
-                'user_id': req.user.id,
-                'action_type': 3,
-                'message': 'Eliminazione sito | Nome: ' + customer_site_ex.description + ' - IP: ' + customer_site_ex.ip_address + ' - Porta: ' + customer_site_ex.port_number,
-                'created_at': final
-            });
-
-            const userLog = newUserLog.save();
             res.status(200).json({ 
                 'status': 200,
                 'body': {
